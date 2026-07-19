@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { AppError } from '@/core/domain/errors';
-import type { OnboardingInput, UserProfile } from '../domain/types';
+import type {
+  OnboardingInput,
+  ProfileExtrasInput,
+  UserProfile,
+} from '../domain/types';
 import { useProfileRepository } from '../ProfileProvider';
 
 export const profileKeys = {
@@ -32,6 +36,25 @@ export function useCompleteOnboarding(userId: string | undefined) {
         throw { code: 'unknown', message: 'No active session.', retryable: false };
       }
       const result = await repo.completeOnboarding(userId, input);
+      if (!result.ok) throw result.error;
+      return result.value;
+    },
+    onSuccess: (profile) => {
+      queryClient.setQueryData(profileKeys.detail(profile.id), profile);
+    },
+  });
+}
+
+/** Saves profile-level skills & certifications (Phase 2). */
+export function useUpdateProfileExtras(userId: string | undefined) {
+  const repo = useProfileRepository();
+  const queryClient = useQueryClient();
+  return useMutation<UserProfile, AppError, ProfileExtrasInput>({
+    mutationFn: async (input) => {
+      if (!userId) {
+        throw { code: 'unknown', message: 'No active session.', retryable: false };
+      }
+      const result = await repo.updateProfileExtras(userId, input);
       if (!result.ok) throw result.error;
       return result.value;
     },

@@ -30,6 +30,36 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
+        name="practice"
+        options={{
+          title: 'Practice',
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="mic-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="stories"
+        options={{
+          title: 'Stories',
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="book-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="knowledge"
+        options={{
+          title: 'Profile',
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="briefcase-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',

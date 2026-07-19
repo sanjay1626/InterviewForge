@@ -2,7 +2,11 @@ import { makeError } from '@/core/domain/errors';
 import { err, ok, type Result } from '@/core/domain/result';
 import type { TypedSupabaseClient } from '@/core/supabase/client';
 import type { TablesInsert } from '@/core/supabase/database.types';
-import type { OnboardingInput, UserProfile } from '../domain/types';
+import type {
+  OnboardingInput,
+  ProfileExtrasInput,
+  UserProfile,
+} from '../domain/types';
 import { mapProfileRow } from './profile-mapper';
 import type { ProfileRepository } from './profile-repository';
 
@@ -63,6 +67,25 @@ export class SupabaseProfileRepository implements ProfileRepository {
     const { data, error } = await this.client
       .from('user_profiles')
       .upsert(payload)
+      .select('*')
+      .single();
+
+    if (error) return err(mapPostgrestError(error.message, error.code, error));
+    return ok(mapProfileRow(data));
+  }
+
+  async updateProfileExtras(
+    userId: string,
+    input: ProfileExtrasInput,
+  ): Promise<Result<UserProfile>> {
+    const { data, error } = await this.client
+      .from('user_profiles')
+      .update({
+        skills: input.skills,
+        certifications: input.certifications,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId)
       .select('*')
       .single();
 

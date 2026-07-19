@@ -25,6 +25,8 @@ export function mapProfileRow(row: Tables<'user_profiles'>): UserProfile {
       ? row.preferred_practice_mode
       : null,
     onboardingCompleted: row.onboarding_completed,
+    skills: row.skills ?? [],
+    certifications: row.certifications ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

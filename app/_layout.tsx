@@ -11,6 +11,9 @@ import { AuthProvider } from '@/features/auth/AuthProvider';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import { ProfileProvider } from '@/features/onboarding/ProfileProvider';
 import { useProfile } from '@/features/onboarding/hooks/useProfile';
+import { KnowledgeProvider } from '@/features/knowledge/KnowledgeProvider';
+import { StoriesProvider } from '@/features/stories/StoriesProvider';
+import { PracticeProvider } from '@/features/practice/PracticeProvider';
 
 const queryClient = createQueryClient();
 
@@ -30,11 +33,14 @@ function useProtectedRoute() {
     if (status === 'loading') return;
 
     const group = segments[0];
-    const inAuthGroup = group === '(auth)' || group === 'welcome' || group === undefined;
+    // The index route (`/`) is only a boot splash — never a resting place.
+    const onIndex = group === undefined;
+    const inAuthFlow = group === '(auth)' || group === 'welcome';
     const inOnboarding = group === '(onboarding)';
 
     if (status === 'signedOut') {
-      if (!inAuthGroup) router.replace('/welcome');
+      // Signed-out users belong in the auth flow; push them off the splash.
+      if (!inAuthFlow) router.replace('/welcome');
       return;
     }
 
@@ -48,8 +54,8 @@ function useProtectedRoute() {
       return;
     }
 
-    // Fully onboarded — keep them out of the auth/onboarding funnels.
-    if (inAuthGroup || inOnboarding) {
+    // Fully onboarded — keep them out of the splash/auth/onboarding funnels.
+    if (onIndex || inAuthFlow || inOnboarding) {
       router.replace('/(app)/dashboard');
     }
   }, [status, segments, profile.isLoading, profile.data, router]);
@@ -75,10 +81,16 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <ProfileProvider>
-              <ErrorBoundary>
-                <StatusBar style="auto" />
-                <RootNavigation />
-              </ErrorBoundary>
+              <KnowledgeProvider>
+                <StoriesProvider>
+                  <PracticeProvider>
+                    <ErrorBoundary>
+                      <StatusBar style="auto" />
+                      <RootNavigation />
+                    </ErrorBoundary>
+                  </PracticeProvider>
+                </StoriesProvider>
+              </KnowledgeProvider>
             </ProfileProvider>
           </AuthProvider>
         </QueryClientProvider>

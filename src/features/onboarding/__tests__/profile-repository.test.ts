@@ -30,6 +30,8 @@ describe('mapProfileRow', () => {
       interview_goals: ['new-job', 'garbage'],
       preferred_practice_mode: 'text',
       onboarding_completed: true,
+      skills: ['SQL'],
+      certifications: [],
       created_at: '2026-01-01T00:00:00Z',
       updated_at: '2026-01-01T00:00:00Z',
     };
@@ -37,6 +39,7 @@ describe('mapProfileRow', () => {
     expect(profile.experienceLevel).toBeNull();
     expect(profile.preferredPracticeMode).toBe('text');
     expect(profile.interviewGoals).toEqual(['new-job']);
+    expect(profile.skills).toEqual(['SQL']);
   });
 });
 

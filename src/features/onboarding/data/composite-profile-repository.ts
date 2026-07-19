@@ -1,7 +1,11 @@
 import type { Result } from '@/core/domain/result';
 import type { TypedSupabaseClient } from '@/core/supabase/client';
 import { isGuestUserId } from '@/features/auth/data/guest-session';
-import type { OnboardingInput, UserProfile } from '../domain/types';
+import type {
+  OnboardingInput,
+  ProfileExtrasInput,
+  UserProfile,
+} from '../domain/types';
 import { GuestProfileRepository } from './guest-profile-repository';
 import type { ProfileRepository } from './profile-repository';
 import { SupabaseProfileRepository } from './supabase-profile-repository';
@@ -32,5 +36,12 @@ export class CompositeProfileRepository implements ProfileRepository {
     input: OnboardingInput,
   ): Promise<Result<UserProfile>> {
     return this.pick(userId).completeOnboarding(userId, input);
+  }
+
+  updateProfileExtras(
+    userId: string,
+    input: ProfileExtrasInput,
+  ): Promise<Result<UserProfile>> {
+    return this.pick(userId).updateProfileExtras(userId, input);
   }
 }

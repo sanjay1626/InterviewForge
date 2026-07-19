@@ -82,48 +82,49 @@ You can apply migrations two ways.
 
 Verify: **Table Editor** should now show `public.user_profiles` with RLS enabled.
 
-## 6. Enable pgvector — [Later — Phase 2]
+## 5b. Apply the Phase 2 migration — [Phase 2]
 
-Needed for document embeddings / retrieval.
+Run [`supabase/migrations/0002_knowledge_base.sql`](../supabase/migrations/0002_knowledge_base.sql)
+the same way as step 5 (SQL Editor or `supabase db push`). It creates the
+`documents`, `document_chunks`, `work_experiences`, and `projects` tables (all
+with owner-only RLS), the `match_document_chunks` retrieval function, adds
+`skills`/`certifications` to `user_profiles`, **enables pgvector**, and **creates
+the private `documents` Storage bucket with owner-only object policies**.
 
-1. **Database → Extensions**.
-2. Search `vector`, toggle it **on** (schema `extensions`).
-   Or in SQL: `create extension if not exists vector with schema extensions;`
+So for Phase 2, steps 6, 7, and 8 below are **handled by the migration** — you do
+not need to do them by hand. They're kept here for reference.
 
-_Not required for Phase 1._
+## 5c. Apply the Phase 3 migration — [Phase 3]
 
-## 7. Create the private `documents` Storage bucket — [Later — Phase 2]
+Run [`supabase/migrations/0003_star_stories.sql`](../supabase/migrations/0003_star_stories.sql)
+to create the `star_stories` table (owner-only RLS, indexes, `updated_at`
+trigger). No Storage, functions, or secrets are needed — the STAR vault and
+guided builder are fully functional (and work in guest mode locally) once this
+table exists.
 
-1. **Storage → New bucket** → name `documents`, **uncheck "Public"** (private).
-2. This bucket will hold per-user resume uploads.
+## 5d. Apply the Phase 4 migration — [Phase 4]
 
-_Not required for Phase 1._
+Run [`supabase/migrations/0004_practice.sql`](../supabase/migrations/0004_practice.sql).
+It creates the global read-only `behavioral_questions` catalog (seeded with 50
+questions), plus `practice_sessions`, `practice_answers`, `answer_evaluations`,
+and `user_progress` (all owner-only RLS). The app also bundles the question
+library locally, so practice and the **offline** evaluator work with no backend
+at all (guest mode).
 
-## 8. Apply Storage RLS policies — [Later — Phase 2]
+## 6. Enable pgvector — [Handled by migration 0002]
 
-Restrict every object to the owner's folder (`documents/{user_id}/...`). Example
-policy set (run in SQL editor once the bucket exists):
+The migration runs `create extension if not exists vector with schema extensions;`.
+To do it manually instead: **Database → Extensions** → enable `vector`.
 
-```sql
--- Read/write only within your own user-id folder.
-create policy "documents: read own"
-  on storage.objects for select
-  using (bucket_id = 'documents' and (storage.foldername(name))[1] = auth.uid()::text);
+## 7. Create the private `documents` Storage bucket — [Handled by migration 0002]
 
-create policy "documents: write own"
-  on storage.objects for insert
-  with check (bucket_id = 'documents' and (storage.foldername(name))[1] = auth.uid()::text);
+The migration inserts the `documents` bucket (private). To do it manually:
+**Storage → New bucket** → name `documents`, **uncheck "Public"**.
 
-create policy "documents: update own"
-  on storage.objects for update
-  using (bucket_id = 'documents' and (storage.foldername(name))[1] = auth.uid()::text);
+## 8. Apply Storage RLS policies — [Handled by migration 0002]
 
-create policy "documents: delete own"
-  on storage.objects for delete
-  using (bucket_id = 'documents' and (storage.foldername(name))[1] = auth.uid()::text);
-```
-
-_Not required for Phase 1._
+The migration creates owner-only policies restricting every object to
+`documents/{auth.uid()}/...`. No manual step needed.
 
 ## 9. Configure email/password authentication — [Phase 1]
 
@@ -147,29 +148,75 @@ only if, in a later phase, you want guest data to sync to the cloud:
 
 _Not required for Phase 1._
 
-## 11. Deploy Edge Functions — [Later — Phase 2+]
+## 11. Deploy the ingestion Edge Function — [Phase 2]
 
-The document ingestion + AI evaluation functions are introduced in later phases
-(`ingest-document`, retrieval, evaluation). When they exist:
+Deploy `ingest-document` (chunks a resume and stores searchable chunks):
 
 ```bash
 supabase functions deploy ingest-document
-supabase functions deploy evaluate-answer
 ```
 
-_Not required for Phase 1._
+It runs with the caller's JWT (RLS-enforced) and needs **no service-role key**.
+If it isn't deployed, resume upload still stores the file + document row, and the
+app marks the document `failed` with a "deploy ingest-document" message and a
+**Re-analyze** button.
 
-## 12. Add LLM and embedding provider secrets — [Later — Phase 2+]
+Deploy the Phase 4 answer evaluator and the Phase 5 transcriber the same way:
 
-Set these as **Edge Function secrets** (server-side only), never in the app:
+```bash
+supabase functions deploy evaluate-answer
+supabase functions deploy transcribe-audio
+```
+
+It also runs under the caller's JWT (RLS-enforced retrieval of the user's
+profile, experiences, projects, and STAR stories as grounding) and needs an
+`ANTHROPIC_API_KEY` secret (next step). Without it — or if it isn't deployed —
+the app automatically falls back to its **offline heuristic** evaluator, which
+never fabricates and marks missing facts as `[bracketed]` prompts.
+
+## 12. Add embedding provider secret — [Optional in Phase 2, required for semantic search later]
+
+Embeddings are **optional** right now: without a key, chunks are stored with
+`embedding = null` and the feature still works (keyword-grounding). To enable
+semantic retrieval, set an embeddings secret (server-side only, never in the app):
+
+```bash
+# OpenAI-compatible (default URL/model); dimension must match migration 0002 (1536)
+supabase secrets set EMBEDDINGS_API_KEY=sk-...
+# optional overrides:
+supabase secrets set EMBEDDINGS_URL=https://api.openai.com/v1/embeddings
+supabase secrets set EMBEDDINGS_MODEL=text-embedding-3-small
+```
+
+If you switch to a model with a different dimension, update the `vector(1536)`
+size in `0002_knowledge_base.sql` and re-ingest.
+
+For Phase 4 answer evaluation, set the Anthropic key as a function secret
+(server-side only — never in the app):
 
 ```bash
 supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-supabase secrets set EMBEDDINGS_API_KEY=...
-supabase secrets set SUPABASE_SERVICE_ROLE_KEY=...   # for privileged writes inside functions
+# optional: override the default model (claude-opus-4-8)
+supabase secrets set EVAL_MODEL=claude-sonnet-5
 ```
 
-_Not required for Phase 1._
+Without this key, `evaluate-answer` returns 501 and the app uses the offline
+evaluator — the app stays fully functional, just without AI grounding.
+
+For Phase 5 voice transcription, set a transcription provider key (also a
+function secret; OpenAI-compatible Whisper endpoint by default):
+
+```bash
+supabase secrets set TRANSCRIBE_API_KEY=sk-...
+# optional overrides:
+supabase secrets set TRANSCRIBE_URL=https://api.openai.com/v1/audio/transcriptions
+supabase secrets set TRANSCRIBE_MODEL=whisper-1
+```
+
+Without this key, `transcribe-audio` returns 501 and voice practice falls back
+to manual transcript entry — the user simply types what they said, then submits
+it for evaluation. TTS playback of the improved answer uses on-device speech
+(expo-speech) and needs no key.
 
 ## 13. Test end-to-end — [Phase 1 subset]
 
@@ -185,7 +232,19 @@ Phase 1 testable paths:
    shows all rows; the app (anon + user JWT) only ever returns the signed-in
    user's row.
 
-Upload / ingestion / retrieval / evaluation tests come online in later phases.
+Phase 2 testable paths (after migration 0002 + deploying `ingest-document`):
+
+5. **Resume upload:** Profile tab → Resume → upload a `.txt`/`.md` file →
+   document appears and moves to **Analyzed** with a chunk count. Verify rows in
+   `documents` and `document_chunks` (Table Editor).
+6. **Storage:** the file is under `documents/{your-user-id}/…`; another user's
+   JWT cannot read it (owner-only policy).
+7. **Experience/Projects:** add, edit, delete entries → rows in
+   `work_experiences` / `projects`, each scoped to your user id by RLS.
+8. **Skills & certifications:** save on the Skills screen → `user_profiles.skills`
+   / `certifications` update.
+
+Retrieval / evaluation tests come online in later phases.
 
 ## 14. Troubleshooting
 
@@ -199,3 +258,7 @@ Upload / ingestion / retrieval / evaluation tests come online in later phases.
 | Env vars `undefined` in app | Used a non-`EXPO_PUBLIC_` name | Prefix with `EXPO_PUBLIC_` and restart with `-c` |
 | Metro cache / stale types | Old bundle | `npx expo start -c` and regenerate router types (`npx expo customize tsconfig.json`) |
 | iOS Expo Go can't reach Supabase | Network / URL typo | Verify `EXPO_PUBLIC_SUPABASE_URL` has `https://` and correct ref |
+| Resume uploads but document shows "Failed" | `ingest-document` not deployed | `supabase functions deploy ingest-document`, then tap **Re-analyze** |
+| Upload error mentions bucket not found | Migration 0002 not applied | Run `0002_knowledge_base.sql` (creates the `documents` bucket) |
+| Chunks stored but no embeddings | No embeddings key set | Optional — set `EMBEDDINGS_API_KEY` (step 12) and re-analyze |
+| `relation "documents" does not exist` | Migration 0002 not applied | Apply `0002_knowledge_base.sql` |

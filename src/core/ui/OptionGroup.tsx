@@ -1,19 +1,26 @@
 import { View } from 'react-native';
 
-import { Body, Caption, Card, spacing } from '@/core/ui';
-import type { Option } from '../domain/constants';
+import { Card } from './Card';
+import { Body, Caption } from './Typography';
+import { spacing } from './theme';
+
+export interface SelectOption<T extends string> {
+  value: T;
+  label: string;
+  description?: string;
+}
 
 interface OptionGroupProps<T extends string> {
-  options: Option<T>[];
-  /** Selected value(s). Array enables multi-select. */
+  options: SelectOption<T>[];
+  /** Selected value(s). Pass an array to enable multi-select. */
   selected: T | T[] | null;
   onSelect: (value: T) => void;
 }
 
 /**
- * Renders a list of selectable option cards. When `selected` is an array the
- * group behaves as multi-select; otherwise single-select. Each card exposes an
- * accessible selected state and a 48pt+ touch target.
+ * Renders a list of selectable option cards. Array `selected` → multi-select;
+ * otherwise single-select. Each card exposes an accessible selected state and a
+ * 48pt+ touch target.
  */
 export function OptionGroup<T extends string>({
   options,

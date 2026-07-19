@@ -7,10 +7,25 @@ accomplishments.
 Built with Expo + React Native + TypeScript, Expo Router, Supabase, and
 TanStack Query.
 
-> **Status: Phase 1 complete** — Expo shell, authentication (email/password +
-> local guest mode), navigation with an auth/onboarding gate, Supabase client,
-> and a 5-step onboarding flow. Later phases add the resume profile, STAR vault,
-> practice, evaluation, voice, and progress dashboard.
+> **Status: Phases 1–5 complete.**
+> - **Phase 1** — Expo shell, auth (email/password + local guest mode),
+>   navigation with an auth/onboarding gate, Supabase client, 5-step onboarding.
+> - **Phase 2** — Knowledge base: resume upload (TXT/MD) with Storage +
+>   `ingest-document` Edge Function chunking (embeddings optional), work
+>   experience & project CRUD, skills/certifications, pgvector + retrieval RPC.
+> - **Phase 3** — STAR Story Vault + guided, fact-preserving story builder.
+> - **Phase 4** — Behavioral question library (50 questions), text practice, and
+>   structured 10-point evaluation with a fact-preserving STAR improvement.
+>   Grounded AI evaluation via the `evaluate-answer` Edge Function (Claude,
+>   RLS-scoped retrieval); a deterministic offline evaluator is the fallback so
+>   practice works with no backend and never fabricates.
+> - **Phase 5** — Voice practice: record (expo-audio) → transcribe
+>   (`transcribe-audio` Edge Function, provider-configurable) → correct the
+>   transcript → evaluate through the Phase 4 pipeline; filler-word analysis and
+>   text-to-speech playback (expo-speech) of the improved answer. Falls back to
+>   manual transcript entry when transcription isn't configured.
+>
+> The remaining phase adds the progress dashboard, follow-up practice, and polish.
 
 ## Quick start
 

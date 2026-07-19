@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
 import { toUserMessage } from '@/core/domain/errors';
@@ -18,9 +19,7 @@ import { useAuthStore } from '@/features/auth/store/auth-store';
 import { useProfile } from '@/features/onboarding/hooks/useProfile';
 
 const UPCOMING = [
-  { phase: 'Phase 2', title: 'Resume & experience profile', desc: 'Upload a resume and build your knowledge base.' },
-  { phase: 'Phase 3', title: 'STAR Story Vault', desc: 'Capture and structure your best stories.' },
-  { phase: 'Phase 4', title: 'Practice & evaluation', desc: 'Answer questions and get grounded feedback.' },
+  { phase: 'Phase 5', title: 'Voice practice', desc: 'Record, transcribe, and hear improved answers.' },
   { phase: 'Phase 6', title: 'Progress dashboard', desc: 'Track scores, streaks, and weak spots.' },
 ];
 
@@ -36,6 +35,7 @@ export default function DashboardScreen() {
   const session = useAuthStore((s) => s.session);
   const isGuest = session?.user.mode === 'guest';
   const profile = useProfile(session?.user.id);
+  const router = useRouter();
 
   if (profile.isLoading) {
     return (
@@ -83,6 +83,46 @@ export default function DashboardScreen() {
         {goalLabels.length > 0 ? (
           <Caption>Goals: {goalLabels.join(', ')}</Caption>
         ) : null}
+      </Card>
+
+      <Card
+        accessibilityLabel="Start practicing"
+        onPress={() => router.push('/(app)/practice')}
+      >
+        <Caption style={{ color: theme.brand, fontWeight: '700' }}>PRACTICE</Caption>
+        <Subtitle>Practice a behavioral question</Subtitle>
+        <Caption>
+          Answer real questions and get a structured, fact-grounded evaluation
+          with a STAR-formatted improvement.
+        </Caption>
+      </Card>
+
+      <Card
+        accessibilityLabel="Build your knowledge base"
+        onPress={() => router.push('/(app)/knowledge')}
+      >
+        <Caption style={{ color: theme.brand, fontWeight: '700' }}>
+          KNOWLEDGE BASE
+        </Caption>
+        <Subtitle>Build your knowledge base</Subtitle>
+        <Caption>
+          Add your resume, work experience, and projects so practice answers stay
+          grounded in your real experience.
+        </Caption>
+      </Card>
+
+      <Card
+        accessibilityLabel="STAR Story Vault"
+        onPress={() => router.push('/(app)/stories')}
+      >
+        <Caption style={{ color: theme.brand, fontWeight: '700' }}>
+          STAR STORIES
+        </Caption>
+        <Subtitle>Build your STAR story vault</Subtitle>
+        <Caption>
+          Turn real experiences into structured stories you can reuse across many
+          behavioral questions.
+        </Caption>
       </Card>
 
       <View style={{ gap: spacing.sm }}>

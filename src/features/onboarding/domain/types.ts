@@ -31,8 +31,16 @@ export interface UserProfile {
   interviewGoals: InterviewGoal[];
   preferredPracticeMode: PracticeMode | null;
   onboardingCompleted: boolean;
+  skills: string[];
+  certifications: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+/** Profile-level knowledge captured outside onboarding (Phase 2). */
+export interface ProfileExtrasInput {
+  skills: string[];
+  certifications: string[];
 }
 
 /** Fields the user sets during onboarding. */

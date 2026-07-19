@@ -6,6 +6,7 @@ import {
   Body,
   Button,
   Caption,
+  OptionGroup,
   Screen,
   Subtitle,
   TextField,
@@ -27,7 +28,6 @@ import type {
   PracticeMode,
 } from '../domain/types';
 import { useCompleteOnboarding } from '../hooks/useProfile';
-import { OptionGroup } from './OptionGroup';
 
 interface Draft {
   displayName: string;

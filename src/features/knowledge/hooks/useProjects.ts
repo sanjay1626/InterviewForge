@@ -4,7 +4,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-import type { AppError } from '@/core/domain/errors';
+import { noSessionError, type AppError } from '@/core/domain/errors';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import type { Project, ProjectInput } from '../domain/types';
 import { useKnowledgeRepositories } from '../KnowledgeProvider';
@@ -33,7 +33,7 @@ export function useSaveProject() {
   const queryClient = useQueryClient();
   return useMutation<Project, AppError, { id?: string; input: ProjectInput }>({
     mutationFn: async ({ id, input }) => {
-      if (!userId) throw notSignedIn();
+      if (!userId) throw noSessionError();
       const result = id
         ? await projects.update(userId, id, input)
         : await projects.create(userId, input);
@@ -52,7 +52,7 @@ export function useDeleteProject() {
   const queryClient = useQueryClient();
   return useMutation<void, AppError, string>({
     mutationFn: async (id) => {
-      if (!userId) throw notSignedIn();
+      if (!userId) throw noSessionError();
       const result = await projects.remove(userId, id);
       if (!result.ok) throw result.error;
     },
@@ -60,8 +60,4 @@ export function useDeleteProject() {
       if (userId) void queryClient.invalidateQueries({ queryKey: keys.list(userId) });
     },
   });
-}
-
-function notSignedIn(): AppError {
-  return { code: 'unknown', message: 'No active session.', retryable: false };
 }

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   RecordingPresets,
   requestRecordingPermissionsAsync,
@@ -16,6 +16,18 @@ export function useRecorder() {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const state = useAudioRecorderState(recorder);
   const [error, setError] = useState<string | null>(null);
+  const recordingRef = useRef(false);
+
+  // Stop an in-progress recording and release the audio session on unmount so
+  // leaving the screen mid-record never leaves the mic active.
+  useEffect(() => {
+    return () => {
+      if (recordingRef.current) {
+        recorder.stop().catch(() => {});
+      }
+      setAudioModeAsync({ allowsRecording: false }).catch(() => {});
+    };
+  }, [recorder]);
 
   const start = useCallback(async (): Promise<boolean> => {
     setError(null);
@@ -28,6 +40,7 @@ export function useRecorder() {
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       await recorder.prepareToRecordAsync();
       recorder.record();
+      recordingRef.current = true;
       return true;
     } catch (e) {
       setError((e as Error).message ?? 'Could not start recording.');
@@ -38,6 +51,7 @@ export function useRecorder() {
   const stop = useCallback(async (): Promise<string | null> => {
     try {
       await recorder.stop();
+      recordingRef.current = false;
       return recorder.uri;
     } catch (e) {
       setError((e as Error).message ?? 'Could not stop recording.');

@@ -18,11 +18,6 @@ import { EXPERIENCE_LEVELS, INTERVIEW_GOALS } from '@/features/onboarding/domain
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import { useProfile } from '@/features/onboarding/hooks/useProfile';
 
-const UPCOMING = [
-  { phase: 'Phase 5', title: 'Voice practice', desc: 'Record, transcribe, and hear improved answers.' },
-  { phase: 'Phase 6', title: 'Progress dashboard', desc: 'Track scores, streaks, and weak spots.' },
-];
-
 function labelFor<T extends string>(
   options: { value: T; label: string }[],
   value: T | null,
@@ -125,22 +120,17 @@ export default function DashboardScreen() {
         </Caption>
       </Card>
 
-      <View style={{ gap: spacing.sm }}>
-        <Subtitle>Coming next</Subtitle>
-        <Body muted>
-          The foundation is ready. Each phase below unlocks a new part of your
-          interview prep.
-        </Body>
-        {UPCOMING.map((item) => (
-          <Card key={item.title}>
-            <Caption style={{ color: theme.brand, fontWeight: '700' }}>
-              {item.phase.toUpperCase()}
-            </Caption>
-            <Body style={{ fontWeight: '600' }}>{item.title}</Body>
-            <Caption>{item.desc}</Caption>
-          </Card>
-        ))}
-      </View>
+      <Card
+        accessibilityLabel="View your progress"
+        onPress={() => router.push('/(app)/practice/progress')}
+      >
+        <Caption style={{ color: theme.brand, fontWeight: '700' }}>PROGRESS</Caption>
+        <Subtitle>Track your progress</Subtitle>
+        <Caption>
+          Scores by competency, practice streak, strengths and focus areas, and
+          your recommended next question.
+        </Caption>
+      </Card>
     </Screen>
   );
 }

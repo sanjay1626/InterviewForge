@@ -169,6 +169,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     borderWidth: 1,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    minHeight: 44,
+    justifyContent: 'center',
   },
 });

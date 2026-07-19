@@ -4,7 +4,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-import type { AppError } from '@/core/domain/errors';
+import { noSessionError, type AppError } from '@/core/domain/errors';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import type { DocumentRecord, ResumeUpload } from '../domain/types';
 import { useKnowledgeRepositories } from '../KnowledgeProvider';
@@ -33,7 +33,7 @@ export function useUploadResume() {
   const queryClient = useQueryClient();
   return useMutation<DocumentRecord, AppError, ResumeUpload>({
     mutationFn: async (upload) => {
-      if (!userId) throw notSignedIn();
+      if (!userId) throw noSessionError();
       const result = await documents.uploadResume(userId, upload);
       if (!result.ok) throw result.error;
       return result.value;
@@ -50,7 +50,7 @@ export function useReingestDocument() {
   const queryClient = useQueryClient();
   return useMutation<DocumentRecord, AppError, string>({
     mutationFn: async (id) => {
-      if (!userId) throw notSignedIn();
+      if (!userId) throw noSessionError();
       const result = await documents.reingest(userId, id);
       if (!result.ok) throw result.error;
       return result.value;
@@ -67,7 +67,7 @@ export function useDeleteDocument() {
   const queryClient = useQueryClient();
   return useMutation<void, AppError, string>({
     mutationFn: async (id) => {
-      if (!userId) throw notSignedIn();
+      if (!userId) throw noSessionError();
       const result = await documents.remove(userId, id);
       if (!result.ok) throw result.error;
     },
@@ -75,8 +75,4 @@ export function useDeleteDocument() {
       if (userId) void queryClient.invalidateQueries({ queryKey: keys.list(userId) });
     },
   });
-}
-
-function notSignedIn(): AppError {
-  return { code: 'unknown', message: 'No active session.', retryable: false };
 }

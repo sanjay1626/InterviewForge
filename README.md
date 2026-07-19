@@ -7,7 +7,7 @@ accomplishments.
 Built with Expo + React Native + TypeScript, Expo Router, Supabase, and
 TanStack Query.
 
-> **Status: Phases 1–5 complete.**
+> **Status: Phases 1–6 complete — all modules delivered.**
 > - **Phase 1** — Expo shell, auth (email/password + local guest mode),
 >   navigation with an auth/onboarding gate, Supabase client, 5-step onboarding.
 > - **Phase 2** — Knowledge base: resume upload (TXT/MD) with Storage +
@@ -24,8 +24,10 @@ TanStack Query.
 >   transcript → evaluate through the Phase 4 pipeline; filler-word analysis and
 >   text-to-speech playback (expo-speech) of the improved answer. Falls back to
 >   manual transcript entry when transcription isn't configured.
->
-> The remaining phase adds the progress dashboard, follow-up practice, and polish.
+> - **Phase 6** — Follow-up practice (answer AI-suggested probes for extra
+>   feedback), an on-device progress dashboard (scores by competency, streak,
+>   strongest/focus areas, too-long & filler watch-outs, recommended next
+>   question), and results-screen polish.
 
 ## Quick start
 
@@ -34,6 +36,12 @@ npm install
 cp .env.example .env        # optional — app runs in guest mode without it
 npx expo start -c           # then press "i" for iOS / scan the QR in Expo Go
 ```
+
+**Docs:** [Developer guide](docs/DEVELOPMENT.md) ·
+[Supabase setup](docs/SUPABASE_SETUP.md) ·
+[Stabilization audit & roadmap](docs/STABILIZATION_AUDIT.md) ·
+[UI consistency](docs/UI_CONSISTENCY.md) ·
+[Beta readiness](docs/BETA_READINESS.md)
 
 See [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md) for the full backend
 setup. Without Supabase keys the app runs in **guest mode** (local-only).

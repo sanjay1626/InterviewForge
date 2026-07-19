@@ -65,3 +65,8 @@ export interface EvaluationRequest {
 
 export const IDEAL_MIN_WORDS = 130; // ~60s spoken
 export const IDEAL_MAX_WORDS = 260; // ~120s spoken
+
+/** Hard cap on a single answer/transcript (cost + abuse protection). */
+export const MAX_ANSWER_CHARS = 5000;
+/** Cap on a follow-up response. */
+export const MAX_FOLLOWUP_CHARS = 1500;

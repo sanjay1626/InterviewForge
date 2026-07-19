@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { File } from 'expo-file-system';
 import { View } from 'react-native';
@@ -18,6 +18,7 @@ import {
   useTheme,
 } from '@/core/ui';
 import { analyzeFillers } from '@/features/practice/domain/fillers';
+import { MAX_ANSWER_CHARS } from '@/features/practice/domain/evaluation';
 import { findQuestion } from '@/features/practice/domain/questions';
 import {
   useEvaluateAnswer,
@@ -50,6 +51,15 @@ export default function VoicePracticeScreen() {
   const [transcript, setTranscript] = useState('');
   const [autoFailed, setAutoFailed] = useState(false);
 
+  // Guard against setState after unmount (transcription resolves asynchronously).
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
   if (!question) {
     return (
       <Screen scroll={false} center>
@@ -62,12 +72,19 @@ export default function VoicePracticeScreen() {
     void recorder.start();
   };
 
+  const toReview = (failed: boolean, text?: string) => {
+    if (!mounted.current) return;
+    if (failed) setAutoFailed(true);
+    if (text !== undefined) setTranscript(text);
+    setPhase('review');
+  };
+
   const onStop = async () => {
     const uri = await recorder.stop();
+    if (!mounted.current) return;
     setPhase('processing');
     if (!uri) {
-      setAutoFailed(true);
-      setPhase('review');
+      toReview(true);
       return;
     }
     try {
@@ -76,19 +93,12 @@ export default function VoicePracticeScreen() {
       transcribe.mutate(
         { audioBase64, mimeType: `audio/${ext}`, fileName: `answer.${ext}` },
         {
-          onSuccess: (text) => {
-            setTranscript(text);
-            setPhase('review');
-          },
-          onError: () => {
-            setAutoFailed(true);
-            setPhase('review');
-          },
+          onSuccess: (text) => toReview(false, text),
+          onError: () => toReview(true),
         },
       );
     } catch {
-      setAutoFailed(true);
-      setPhase('review');
+      toReview(true);
     }
   };
 
@@ -110,6 +120,7 @@ export default function VoicePracticeScreen() {
             questionText: question.prompt,
             competency: question.competency,
             answer,
+            mode: 'voice',
             evaluation,
           });
           router.push('/(app)/practice/results');
@@ -187,6 +198,7 @@ export default function VoicePracticeScreen() {
             onChangeText={setTranscript}
             multiline
             numberOfLines={10}
+            maxLength={MAX_ANSWER_CHARS}
             placeholder="What you said…"
             style={{ minHeight: 200, paddingTop: spacing.md }}
           />

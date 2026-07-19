@@ -161,6 +161,7 @@ export function StarStoryBuilder({ existing, onSaved }: StarStoryBuilderProps) {
                 accessibilityRole="button"
                 accessibilityLabel={`Use company ${c}`}
                 onPress={() => set('company', c as string)}
+                hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
                 style={[styles.chip, { borderColor: theme.border, backgroundColor: theme.surfaceAlt }]}
               >
                 <Caption muted={false} style={{ color: theme.text }}>{c}</Caption>
@@ -172,6 +173,7 @@ export function StarStoryBuilder({ existing, onSaved }: StarStoryBuilderProps) {
                 accessibilityRole="button"
                 accessibilityLabel={`Use project ${p}`}
                 onPress={() => set('project', p)}
+                hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
                 style={[styles.chip, { borderColor: theme.border, backgroundColor: theme.surfaceAlt }]}
               >
                 <Caption muted={false} style={{ color: theme.text }}>{p}</Caption>

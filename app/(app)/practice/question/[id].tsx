@@ -4,6 +4,7 @@ import { View } from 'react-native';
 
 import { env } from '@/core/config/env';
 import { toUserMessage } from '@/core/domain/errors';
+import { countWords, spokenSecondsForWords } from '@/core/utils/text';
 import {
   Body,
   Button,
@@ -21,6 +22,7 @@ import { findQuestion } from '@/features/practice/domain/questions';
 import {
   IDEAL_MAX_WORDS,
   IDEAL_MIN_WORDS,
+  MAX_ANSWER_CHARS,
 } from '@/features/practice/domain/evaluation';
 import { useEvaluateAnswer } from '@/features/practice/hooks/usePractice';
 import { usePracticeUiStore } from '@/features/practice/store/practice-ui-store';
@@ -44,8 +46,8 @@ export default function PracticeQuestionScreen() {
     );
   }
 
-  const wordCount = answer.trim() ? answer.trim().split(/\s+/).length : 0;
-  const seconds = Math.round((wordCount / 130) * 60);
+  const wordCount = countWords(answer);
+  const seconds = spokenSecondsForWords(wordCount);
   const inRange = wordCount >= IDEAL_MIN_WORDS && wordCount <= IDEAL_MAX_WORDS;
   const canSubmit = wordCount >= 10 && !evaluate.isPending;
 
@@ -68,6 +70,7 @@ export default function PracticeQuestionScreen() {
             questionText: question.prompt,
             competency: question.competency,
             answer: answer.trim(),
+            mode: 'text',
             evaluation,
           });
           router.push('/(app)/practice/results');
@@ -122,6 +125,7 @@ export default function PracticeQuestionScreen() {
         onChangeText={setAnswer}
         multiline
         numberOfLines={10}
+        maxLength={MAX_ANSWER_CHARS}
         placeholder="Start with the situation…"
         style={{ minHeight: 220, paddingTop: spacing.md }}
       />

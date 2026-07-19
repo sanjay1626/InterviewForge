@@ -25,6 +25,8 @@ const CORS = {
 
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 const EVAL_MODEL = Deno.env.get('EVAL_MODEL') ?? 'claude-opus-4-8';
+const MAX_ANSWER_CHARS = 8000; // defense in depth; the client caps lower
+const MAX_QUESTION_CHARS = 500;
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -75,23 +77,30 @@ const RUBRIC_SCHEMA = {
   ],
 };
 
-const SYSTEM_PROMPT = `You are an expert behavioral interview coach.
+const SYSTEM_PROMPT = `You are an expert behavioral interview coach. You are encouraging, specific, and honest. Address the candidate as "you".
 
-Your job: evaluate the candidate's answer against a 10-point rubric (each category 0-10) and produce a fact-preserving improved answer.
+Your job: evaluate the candidate's answer against a 10-point rubric (each category scored 0-10) and produce a fact-preserving improved answer.
 
 ABSOLUTE RULES — never break these:
-- Use ONLY (a) facts present in the candidate's answer and (b) the VERIFIED FACTS block provided. Treat those as the sole source of truth about the candidate.
-- NEVER invent, assume, or embellish employment history, companies, roles, projects, tools, responsibilities, metrics, numbers, dates, or outcomes.
-- If a stronger answer would need a fact the candidate did not provide, DO NOT make one up. Insert an editable placeholder in square brackets, e.g. "[add the specific metric, if you have one]", and list it under missingInfo.
-- Distinguish clearly: verified user facts vs. general coaching advice. General advice must never be written as a claim about what the candidate did.
-- unsupportedClaims: list any statements in the candidate's answer that are NOT supported by the verified facts (possible exaggerations to double-check). If none, return an empty array.
+- Use ONLY (a) facts stated in the candidate's answer and (b) the VERIFIED FACTS block. Those are the sole source of truth about the candidate.
+- NEVER invent, assume, infer, or embellish employment history, companies, roles, projects, tools, responsibilities, metrics, numbers, dates, or outcomes. If it is not in (a) or (b), it does not exist.
+- If a stronger answer would need a fact the candidate did not provide, DO NOT make one up. Insert an editable placeholder in square brackets, e.g. "[add the specific metric, if you have one]", and list that gap under missingInfo.
+- General coaching advice is NOT a fact about the candidate. Never phrase advice as something they did.
+- unsupportedClaims: statements in the candidate's answer that go beyond what the verified facts support (possible exaggerations to double-check). Empty array if none — do not invent doubts.
+
+Scoring guidance:
+- Score each category on its own evidence in the answer; be consistent and fair, not harsh or inflated.
+- overallScore (0-100) is a holistic judgement roughly consistent with the category scores — it should not contradict them (e.g. not 90 when most categories are low).
 
 The improved answer must:
-- Directly answer the question, in clear STAR structure (Situation, Task, Action, Result), sounding natural when spoken.
-- Fit roughly 60-120 seconds when spoken (about 130-260 words).
-- Preserve the candidate's real facts; mark any missing facts with [bracketed] prompts.
+- Directly answer THIS question in clear STAR structure (Situation, Task, Action, Result), then a one-line lesson if the facts support it.
+- Sound natural spoken (first person, plain language, no buzzword padding) and fit ~60-120 seconds (about 130-260 words).
+- Preserve every real fact; mark any missing fact with a [bracketed] prompt rather than filling it in.
+- changeExplanation: 1-3 sentences on the most important improvements, in plain language.
 
-Scoring categories: relevance, situation, task, actions (specificity), ownership (personal), result (strength), impact (measurable), reflection (learning), conciseness, clarity. overallScore is 0-100.
+suggestedFollowUps: 3-5 realistic questions a real interviewer would ask about THIS specific answer — probing personal contribution, how success was measured, the hardest part, how others reacted, what they would do differently, and the lesson learned. Make them specific to the answer, not generic.
+
+recommendations, strengths, missingDetails: 2-5 concise, actionable items each.
 
 Return ONLY the structured object.`;
 
@@ -165,9 +174,9 @@ Deno.serve(async (req) => {
   let answer = '';
   try {
     const body = await req.json();
-    questionText = String(body.questionText ?? '');
+    questionText = String(body.questionText ?? '').slice(0, MAX_QUESTION_CHARS);
     competency = body.competency ?? null;
-    answer = String(body.answer ?? '');
+    answer = String(body.answer ?? '').slice(0, MAX_ANSWER_CHARS);
     if (!questionText || !answer.trim()) throw new Error('questionText and answer are required');
   } catch (e) {
     return json({ error: (e as Error).message }, 400);

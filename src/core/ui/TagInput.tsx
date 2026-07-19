@@ -47,6 +47,7 @@ export function TagInput({
               accessibilityRole="button"
               accessibilityLabel={`Remove ${value}`}
               onPress={() => remove(value)}
+              hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
               style={[
                 styles.chip,
                 { backgroundColor: theme.surfaceAlt, borderColor: theme.border },

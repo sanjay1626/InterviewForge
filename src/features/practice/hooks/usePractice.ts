@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { Competency } from '@/core/domain/competencies';
-import type { AppError } from '@/core/domain/errors';
+import { noSessionError, type AppError } from '@/core/domain/errors';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import type { PracticeAttempt } from '../domain/attempt';
 import type { AnswerEvaluation, PracticeMode } from '../domain/evaluation';
@@ -36,9 +36,7 @@ export function useEvaluateAnswer() {
 
   return useMutation<EvaluateResult, AppError, EvaluateInput>({
     mutationFn: async (input) => {
-      if (!userId) {
-        throw { code: 'unknown', message: 'No active session.', retryable: false } as AppError;
-      }
+      if (!userId) throw noSessionError();
       const result = await evaluator.evaluate(userId, {
         questionText: input.questionText,
         competency: input.competency,
@@ -82,9 +80,7 @@ export function useEvaluateFollowUp() {
 
   return useMutation<AnswerEvaluation, AppError, FollowUpInput>({
     mutationFn: async (input) => {
-      if (!userId) {
-        throw { code: 'unknown', message: 'No active session.', retryable: false } as AppError;
-      }
+      if (!userId) throw noSessionError();
       const result = await evaluator.evaluate(userId, {
         questionText: input.prompt,
         competency: input.competency,
@@ -116,9 +112,7 @@ export function useTranscribe() {
   const userId = useAuthStore((s) => s.session?.user.id);
   return useMutation<string, AppError, TranscribeInput>({
     mutationFn: async (input) => {
-      if (!userId) {
-        throw { code: 'unknown', message: 'No active session.', retryable: false } as AppError;
-      }
+      if (!userId) throw noSessionError();
       const result = await transcription.transcribe(userId, input);
       if (!result.ok) throw result.error;
       return result.value;

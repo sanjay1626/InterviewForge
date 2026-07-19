@@ -2,6 +2,7 @@ import {
   competencyLabel,
   type Competency,
 } from '@/core/domain/competencies';
+import { countWords } from '@/core/utils/text';
 import type { StarStory } from '@/features/stories/domain/types';
 import type { PracticeAttempt } from './attempt';
 import { IDEAL_MAX_WORDS } from './evaluation';
@@ -35,10 +36,6 @@ export interface ProgressSummary {
   fillerHeavyCount: number;
   recentAttempts: PracticeAttempt[];
   recommendedNext: { id: string; prompt: string; competency: Competency }[];
-}
-
-function wordCount(text: string): number {
-  return text.trim() ? text.trim().split(/\s+/).length : 0;
 }
 
 function dayKey(iso: string): string {
@@ -106,7 +103,7 @@ export function computeProgress(
     competencyScores.length > 0 ? competencyScores[competencyScores.length - 1]! : null;
 
   const answersTooLong = attempts.filter(
-    (a) => wordCount(a.answer) > IDEAL_MAX_WORDS,
+    (a) => countWords(a.answer) > IDEAL_MAX_WORDS,
   ).length;
 
   const fillerHeavyCount = attempts.filter(

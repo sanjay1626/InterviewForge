@@ -111,6 +111,20 @@ and `user_progress` (all owner-only RLS). The app also bundles the question
 library locally, so practice and the **offline** evaluator work with no backend
 at all (guest mode).
 
+## 5e. Apply the Phase 6 migration — [Phase 6]
+
+Run [`supabase/migrations/0005_follow_ups.sql`](../supabase/migrations/0005_follow_ups.sql)
+to create `follow_up_answers` (owner-only RLS) for follow-up practice. The
+progress dashboard is computed on-device from your practice history, so it works
+offline and for guests with no extra setup; `user_progress` (created in 0004)
+remains available for future server-side aggregation.
+
+## 5f. Apply the v1.1 index migration — [Recommended]
+
+Run [`supabase/migrations/0006_list_indexes.sql`](../supabase/migrations/0006_list_indexes.sql)
+to add composite `(user_id, created_at)` indexes for the list query paths. Pure
+performance; no schema/behavior change.
+
 ## 6. Enable pgvector — [Handled by migration 0002]
 
 The migration runs `create extension if not exists vector with schema extensions;`.

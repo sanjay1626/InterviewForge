@@ -4,7 +4,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-import type { AppError } from '@/core/domain/errors';
+import { noSessionError, type AppError } from '@/core/domain/errors';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import type { StarStory, StarStoryInput } from '../domain/types';
 import { useStoryRepository } from '../StoriesProvider';
@@ -33,7 +33,7 @@ export function useSaveStory() {
   const queryClient = useQueryClient();
   return useMutation<StarStory, AppError, { id?: string; input: StarStoryInput }>({
     mutationFn: async ({ id, input }) => {
-      if (!userId) throw notSignedIn();
+      if (!userId) throw noSessionError();
       const result = id
         ? await repo.update(userId, id, input)
         : await repo.create(userId, input);
@@ -52,7 +52,7 @@ export function useDeleteStory() {
   const queryClient = useQueryClient();
   return useMutation<void, AppError, string>({
     mutationFn: async (id) => {
-      if (!userId) throw notSignedIn();
+      if (!userId) throw noSessionError();
       const result = await repo.remove(userId, id);
       if (!result.ok) throw result.error;
     },
@@ -60,8 +60,4 @@ export function useDeleteStory() {
       if (userId) void queryClient.invalidateQueries({ queryKey: keys.list(userId) });
     },
   });
-}
-
-function notSignedIn(): AppError {
-  return { code: 'unknown', message: 'No active session.', retryable: false };
 }

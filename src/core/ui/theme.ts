@@ -14,8 +14,25 @@ const palette = {
   warning: '#B7791F',
 };
 
-const light = {
-  mode: 'light' as const,
+export type ThemeMode = 'light' | 'dark';
+
+export interface Theme {
+  mode: ThemeMode;
+  bg: string;
+  surface: string;
+  surfaceAlt: string;
+  border: string;
+  text: string;
+  textMuted: string;
+  textOnBrand: string;
+  brand: string;
+  danger: string;
+  success: string;
+  warning: string;
+}
+
+const light: Theme = {
+  mode: 'light',
   bg: '#FFFFFF',
   surface: '#F5F6FA',
   surfaceAlt: '#EEF0F6',
@@ -29,8 +46,8 @@ const light = {
   warning: palette.warning,
 };
 
-const dark: typeof light = {
-  mode: 'light' as unknown as 'light', // overwritten below
+const dark: Theme = {
+  mode: 'dark',
   bg: '#0E1016',
   surface: '#171A22',
   surfaceAlt: '#1F2330',
@@ -43,10 +60,6 @@ const dark: typeof light = {
   success: '#68D391',
   warning: '#ECC94B',
 };
-// fix the literal so callers can branch on mode
-(dark as { mode: 'dark' | 'light' }).mode = 'dark';
-
-export type Theme = typeof light;
 
 export const spacing = {
   xs: 4,

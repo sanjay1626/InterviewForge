@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { AppError } from '@/core/domain/errors';
+import { noSessionError, type AppError } from '@/core/domain/errors';
 import type {
   OnboardingInput,
   ProfileExtrasInput,
@@ -32,9 +32,7 @@ export function useCompleteOnboarding(userId: string | undefined) {
   const queryClient = useQueryClient();
   return useMutation<UserProfile, AppError, OnboardingInput>({
     mutationFn: async (input) => {
-      if (!userId) {
-        throw { code: 'unknown', message: 'No active session.', retryable: false };
-      }
+      if (!userId) throw noSessionError();
       const result = await repo.completeOnboarding(userId, input);
       if (!result.ok) throw result.error;
       return result.value;
@@ -51,9 +49,7 @@ export function useUpdateProfileExtras(userId: string | undefined) {
   const queryClient = useQueryClient();
   return useMutation<UserProfile, AppError, ProfileExtrasInput>({
     mutationFn: async (input) => {
-      if (!userId) {
-        throw { code: 'unknown', message: 'No active session.', retryable: false };
-      }
+      if (!userId) throw noSessionError();
       const result = await repo.updateProfileExtras(userId, input);
       if (!result.ok) throw result.error;
       return result.value;

@@ -37,3 +37,8 @@ export function makeError(
 export function toUserMessage(error: AppError): string {
   return error.message;
 }
+
+/** Shared error for mutations invoked without an authenticated/guest session. */
+export function noSessionError(): AppError {
+  return makeError('unknown', 'No active session.');
+}

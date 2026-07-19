@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 import type { Competency } from '@/core/domain/competencies';
-import type { AnswerEvaluation } from '../domain/evaluation';
+import type { AnswerEvaluation, PracticeMode } from '../domain/evaluation';
 
 /** The most recent evaluation, shared between the practice → results → improved screens. */
 export interface LastPractice {
@@ -9,6 +9,7 @@ export interface LastPractice {
   questionText: string;
   competency: Competency | null;
   answer: string;
+  mode: PracticeMode;
   evaluation: AnswerEvaluation;
 }
 

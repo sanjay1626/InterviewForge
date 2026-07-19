@@ -77,8 +77,4 @@ export function assembleNarrative(
     .trim();
 }
 
-/** Rough spoken length estimate (~130 wpm) for the assembled narrative. */
-export function estimateSpokenSeconds(text: string): number {
-  const words = text.trim().split(/\s+/).filter(Boolean).length;
-  return Math.round((words / 130) * 60);
-}
+export { estimateSpokenSeconds } from '@/core/utils/text';

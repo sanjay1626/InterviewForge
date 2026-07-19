@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # React/react-dom peer versions require legacy peer resolution (see docs/DEVELOPMENT.md).
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test -- --ci
+
+      - name: Export (iOS bundle sanity check)
+        run: npx expo export --platform ios
+        env:
+          EXPO_NO_TELEMETRY: '1'
+          CI: '1'

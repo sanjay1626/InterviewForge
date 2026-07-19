@@ -34,6 +34,20 @@ export default function PracticeBrowserScreen() {
         </Body>
       </View>
 
+      <Card
+        accessibilityLabel="View your progress"
+        onPress={() => router.push('/(app)/practice/progress')}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <Ionicons name="stats-chart-outline" size={22} color={theme.brand} />
+          <View style={{ flex: 1 }}>
+            <Body style={{ fontWeight: '600' }}>Your progress</Body>
+            <Caption>Scores, streak, strengths, and what to practice next</Caption>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+        </View>
+      </Card>
+
       <View style={{ gap: spacing.sm }}>
         <Subtitle>Start here</Subtitle>
         <Caption>The three most common behavioral questions.</Caption>

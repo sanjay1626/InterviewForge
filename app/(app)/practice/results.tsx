@@ -15,9 +15,12 @@ import {
   useTheme,
 } from '@/core/ui';
 import {
+  IDEAL_MAX_WORDS,
   RUBRIC_KEYS,
   RUBRIC_LABELS,
 } from '@/features/practice/domain/evaluation';
+import { countWords, spokenSecondsForWords } from '@/core/utils/text';
+import { analyzeFillers } from '@/features/practice/domain/fillers';
 import { usePracticeUiStore } from '@/features/practice/store/practice-ui-store';
 
 function Bullets({ items, color }: { items: string[]; color?: string }) {
@@ -58,13 +61,25 @@ export default function EvaluationResultsScreen() {
         ? theme.warning
         : theme.danger;
 
+  const wordCount = countWords(last.answer);
+  const tooLong = wordCount > IDEAL_MAX_WORDS;
+  const fillers = last.mode === 'voice' ? analyzeFillers(last.answer) : null;
+  const hasWatchouts = tooLong || (fillers ? fillers.fillerCount > 0 : false);
+
   return (
     <Screen
       footer={
-        <Button
-          title="See improved answer"
-          onPress={() => router.push('/(app)/practice/improved')}
-        />
+        <View style={{ gap: spacing.sm }}>
+          <Button
+            title="See improved answer"
+            onPress={() => router.push('/(app)/practice/improved')}
+          />
+          <Button
+            title="Practice follow-up questions"
+            variant="secondary"
+            onPress={() => router.push('/(app)/practice/followups')}
+          />
+        </View>
       }
     >
       <Card>
@@ -94,6 +109,24 @@ export default function EvaluationResultsScreen() {
           </View>
         </Card>
       </View>
+
+      {hasWatchouts ? (
+        <View style={{ gap: spacing.xs }}>
+          <Subtitle>Delivery insights</Subtitle>
+          {tooLong ? (
+            <Caption style={{ color: theme.warning }}>
+              • Answer ran long ({wordCount} words · ~{spokenSecondsForWords(wordCount)}s).
+              Aim for 60–120 seconds.
+            </Caption>
+          ) : null}
+          {fillers && fillers.fillerCount > 0 ? (
+            <Caption style={{ color: fillers.rate > 4 ? theme.warning : theme.textMuted }}>
+              • {fillers.fillerCount} filler word{fillers.fillerCount === 1 ? '' : 's'} (
+              {fillers.rate}/100){fillers.breakdown.length ? `: ${fillers.breakdown.slice(0, 3).map((b) => `${b.word} ×${b.count}`).join(', ')}` : ''}
+            </Caption>
+          ) : null}
+        </View>
+      ) : null}
 
       {evaluation.strengths.length > 0 ? (
         <View style={{ gap: spacing.xs }}>

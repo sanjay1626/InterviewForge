@@ -6,16 +6,18 @@ import { err, ok, type Result } from '@/core/domain/result';
 import type { ResumeUpload } from '../domain/types';
 
 const TEXT_EXT = /\.(txt|md|markdown)$/i;
+const RESUME_EXT = /\.(txt|md|markdown|pdf)$/i;
 
 /**
- * Opens the document picker for a TXT/Markdown resume and reads its contents on
- * device. Returns `null` when the user cancels. PDF/DOCX are intentionally not
- * parsed in the MVP — those are rejected with a clear message.
+ * Opens the document picker for a resume. TXT/Markdown are read on-device and
+ * sent inline; PDF is read as raw bytes and parsed server-side after upload.
+ * Returns `null` when the user cancels. Other formats (e.g. DOCX) are rejected
+ * with a clear message.
  */
 export async function pickResume(): Promise<Result<ResumeUpload | null>> {
   try {
     const res = await DocumentPicker.getDocumentAsync({
-      type: ['text/plain', 'text/markdown'],
+      type: ['text/plain', 'text/markdown', 'application/pdf'],
       copyToCacheDirectory: true,
       multiple: false,
     });
@@ -24,28 +26,41 @@ export async function pickResume(): Promise<Result<ResumeUpload | null>> {
     const asset = res.assets[0];
     if (!asset) return ok(null);
 
-    const looksText =
-      TEXT_EXT.test(asset.name ?? '') ||
-      (asset.mimeType ?? '').startsWith('text/');
-    if (!looksText) {
+    const name = asset.name ?? 'Resume';
+    const mime = asset.mimeType ?? '';
+    const isPdf = /\.pdf$/i.test(name) || mime.includes('pdf');
+    const isText = TEXT_EXT.test(name) || mime.startsWith('text/');
+
+    if (!isPdf && !isText) {
       return err(
         makeError(
           'validation',
-          'Only .txt or .md resumes are supported for now. PDF and DOCX parsing is coming in a later release.',
+          'Supported resume formats are .txt, .md, and .pdf. Word (.docx) support is coming later.',
         ),
       );
     }
 
-    const text = await new File(asset.uri).text();
-    if (!text.trim()) {
+    const file = new File(asset.uri);
+    const base64 = await file.base64();
+    if (!base64) {
       return err(makeError('validation', 'That file appears to be empty.'));
     }
 
+    // TXT/MD: read text on-device so ingestion can skip a download round-trip.
+    let text: string | null = null;
+    if (isText) {
+      text = await file.text();
+      if (!text.trim()) {
+        return err(makeError('validation', 'That file appears to be empty.'));
+      }
+    }
+
     return ok({
-      title: (asset.name ?? 'Resume').replace(TEXT_EXT, ''),
-      fileName: asset.name ?? 'resume.txt',
-      mimeType: asset.mimeType ?? 'text/plain',
+      title: name.replace(RESUME_EXT, ''),
+      fileName: name,
+      mimeType: mime || (isPdf ? 'application/pdf' : 'text/plain'),
       text,
+      base64,
     });
   } catch (cause) {
     return err(makeError('unknown', 'Could not read the selected file.', { cause }));

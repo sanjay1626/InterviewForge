@@ -77,6 +77,12 @@ export interface ResumeUpload {
   title: string;
   fileName: string;
   mimeType: string;
-  /** The plain-text contents (TXT/MD read on-device). */
-  text: string;
+  /**
+   * Plain-text contents for TXT/MD (read on-device and sent inline to skip a
+   * round-trip). `null` for binary formats like PDF, which are parsed
+   * server-side after upload.
+   */
+  text: string | null;
+  /** Base64 of the raw file bytes — always the original file, stored as-is. */
+  base64: string;
 }

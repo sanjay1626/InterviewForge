@@ -2,8 +2,8 @@ import { makeError } from '@/core/domain/errors';
 import { err, ok, type Result } from '@/core/domain/result';
 import type { TypedSupabaseClient } from '@/core/supabase/client';
 import { mapPostgrestError, mapStorageError } from '@/core/supabase/errors';
+import { base64ToBytes } from '@/core/utils/base64';
 import { newId } from '@/core/utils/id';
-import { utf8Bytes } from '@/core/utils/utf8';
 import type { DocumentRecord, ResumeUpload } from '../domain/types';
 import type { DocumentRepository } from './document-repository';
 import { mapDocumentRow } from './mappers';
@@ -25,14 +25,17 @@ export class SupabaseDocumentRepository implements DocumentRepository {
     userId: string,
     upload: ResumeUpload,
   ): Promise<Result<DocumentRecord>> {
-    const ext =
-      upload.mimeType.includes('markdown') || upload.fileName.endsWith('.md')
+    const isPdf =
+      upload.mimeType.includes('pdf') || upload.fileName.toLowerCase().endsWith('.pdf');
+    const ext = isPdf
+      ? 'pdf'
+      : upload.mimeType.includes('markdown') || upload.fileName.endsWith('.md')
         ? 'md'
         : 'txt';
     const storagePath = `${userId}/${newId()}.${ext}`;
 
     // 1. Upload the original file bytes to the private bucket.
-    const bytes = utf8Bytes(upload.text);
+    const bytes = base64ToBytes(upload.base64);
     const { error: uploadErr } = await this.client.storage
       .from('documents')
       .upload(storagePath, bytes as unknown as ArrayBuffer, {
@@ -51,7 +54,7 @@ export class SupabaseDocumentRepository implements DocumentRepository {
         mime_type: upload.mimeType || 'text/plain',
         storage_path: storagePath,
         status: 'pending',
-        char_count: upload.text.length,
+        char_count: upload.text?.length ?? 0,
       })
       .select('*')
       .single();
@@ -61,8 +64,9 @@ export class SupabaseDocumentRepository implements DocumentRepository {
       return err(mapPostgrestError(insertErr.message, insertErr.code, insertErr));
     }
 
-    // 3. Trigger ingestion (synchronous invoke) and return the final row.
-    return this.invokeIngest(userId, inserted.id, upload.text);
+    // 3. Trigger ingestion. TXT/MD send inline text; PDF is parsed server-side
+    //    from the uploaded file (no inline text).
+    return this.invokeIngest(userId, inserted.id, upload.text ?? undefined);
   }
 
   async reingest(userId: string, id: string): Promise<Result<DocumentRecord>> {

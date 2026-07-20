@@ -10,9 +10,10 @@ TanStack Query.
 > **Status: Phases 1–6 complete — all modules delivered.**
 > - **Phase 1** — Expo shell, auth (email/password + local guest mode),
 >   navigation with an auth/onboarding gate, Supabase client, 5-step onboarding.
-> - **Phase 2** — Knowledge base: resume upload (TXT/MD) with Storage +
->   `ingest-document` Edge Function chunking (embeddings optional), work
->   experience & project CRUD, skills/certifications, pgvector + retrieval RPC.
+> - **Phase 2** — Knowledge base: resume upload (**PDF** via server-side
+>   extraction, plus TXT/MD) with Storage + `ingest-document` Edge Function
+>   chunking (embeddings optional), work experience & project CRUD,
+>   skills/certifications, pgvector + retrieval RPC.
 > - **Phase 3** — STAR Story Vault + guided, fact-preserving story builder.
 > - **Phase 4** — Behavioral question library (50 questions), text practice, and
 >   structured 10-point evaluation with a fact-preserving STAR improvement.

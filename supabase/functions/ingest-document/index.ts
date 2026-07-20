@@ -16,6 +16,7 @@
 // gracefully. See docs/SUPABASE_SETUP.md.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { extractText, getDocumentProxy } from 'npm:unpdf@0.12.1';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -39,6 +40,13 @@ function json(body: unknown, status = 200): Response {
     status,
     headers: { ...CORS, 'Content-Type': 'application/json' },
   });
+}
+
+/** Extract the text layer from a PDF (server-side; pdf.js via unpdf). */
+async function extractPdfText(bytes: Uint8Array): Promise<string> {
+  const pdf = await getDocumentProxy(bytes);
+  const { text } = await extractText(pdf, { mergePages: true });
+  return Array.isArray(text) ? text.join('\n\n') : (text ?? '');
 }
 
 /** Split text into overlapping, roughly paragraph-aligned chunks. */
@@ -147,9 +155,22 @@ Deno.serve(async (req) => {
         .from('documents')
         .download(doc.storage_path);
       if (dlErr || !file) throw new Error('Could not download file from storage');
-      text = await file.text();
+
+      const isPdf =
+        (doc.mime_type ?? '').includes('pdf') ||
+        doc.storage_path.toLowerCase().endsWith('.pdf');
+
+      if (isPdf) {
+        text = await extractPdfText(new Uint8Array(await file.arrayBuffer()));
+      } else {
+        text = await file.text();
+      }
     }
-    if (!text.trim()) throw new Error('Document has no readable text');
+    if (!text.trim()) {
+      throw new Error(
+        'No readable text found. If this is a scanned/image-only PDF, upload a text-based PDF or a .txt export.',
+      );
+    }
 
     const chunks = chunkText(text);
     const embeddings = await embedChunks(chunks);

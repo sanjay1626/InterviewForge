@@ -117,14 +117,15 @@ export default function ResumeScreen() {
             </Caption>
           ) : null}
           <Button
-            title={disabledForGuest ? 'Sign in to upload a resume' : 'Upload .txt or .md resume'}
+            title={disabledForGuest ? 'Sign in to upload a resume' : 'Upload resume (.pdf, .txt, .md)'}
             onPress={onUpload}
             loading={upload.isPending}
             disabled={disabledForGuest}
           />
           <Caption>
-            MVP supports plain-text and Markdown resumes. PDF and DOCX parsing is
-            coming in a later release.
+            PDF, plain-text, and Markdown resumes are supported. PDFs are parsed
+            on our server; scanned/image-only PDFs won’t have readable text —
+            use a text-based PDF or a .txt export. Word (.docx) is coming later.
           </Caption>
         </View>
       }

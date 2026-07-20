@@ -175,6 +175,13 @@ If it isn't deployed, resume upload still stores the file + document row, and th
 app marks the document `failed` with a "deploy ingest-document" message and a
 **Re-analyze** button.
 
+**PDF support:** the function extracts text from PDFs server-side via `unpdf`
+(bundled through the `npm:` import — no extra secret). The app uploads the raw
+PDF to Storage and the function parses it; TXT/MD are read on-device and sent
+inline. Scanned/image-only PDFs have no text layer and fail with a clear
+message — use a text-based PDF or a `.txt` export. (Word `.docx` is not yet
+supported.)
+
 Deploy the Phase 4 answer evaluator and the Phase 5 transcriber the same way:
 
 ```bash

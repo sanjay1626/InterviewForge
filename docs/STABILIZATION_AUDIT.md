@@ -170,4 +170,4 @@ migrations are idempotent (`if not exists` / `on conflict` / `drop policy`).
 - Technical Interview module (system design / behavioral-technical hybrid).
 - Coding Interview module.
 - Career Coach.
-- Team/coach dashboards; PDF resume/DOCX ingestion; multi-language.
+- Team/coach dashboards; DOCX resume ingestion (PDF already supported); multi-language.

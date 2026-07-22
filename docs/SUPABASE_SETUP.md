@@ -187,7 +187,15 @@ Deploy the Phase 4 answer evaluator and the Phase 5 transcriber the same way:
 ```bash
 supabase functions deploy evaluate-answer
 supabase functions deploy transcribe-audio
+supabase functions deploy extract-profile
 ```
+
+`extract-profile` reads an ingested resume's chunks (RLS-scoped) and returns
+structured **work experiences, projects, skills, and certifications** for the
+user to review and approve — it is a *parser*, not a writer: anything not
+literally in the resume comes back empty, and nothing is saved until the user
+approves it. It uses the same `ANTHROPIC_API_KEY`; without it the function
+returns 501 and the app falls back to manual entry.
 
 It also runs under the caller's JWT (RLS-enforced retrieval of the user's
 profile, experiences, projects, and STAR stories as grounding) and needs an

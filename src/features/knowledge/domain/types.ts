@@ -72,6 +72,17 @@ export interface DocumentRecord {
   updatedAt: string;
 }
 
+/**
+ * Structured data extracted from an uploaded resume. These are *candidates*
+ * only — the user reviews, edits, and approves them before anything is saved.
+ */
+export interface ExtractedProfile {
+  experiences: WorkExperienceInput[];
+  projects: ProjectInput[];
+  skills: string[];
+  certifications: string[];
+}
+
 /** A locally-picked resume file ready to upload + ingest. */
 export interface ResumeUpload {
   title: string;

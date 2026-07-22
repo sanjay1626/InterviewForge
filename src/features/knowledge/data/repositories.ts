@@ -9,7 +9,9 @@ import type {
 import type { CollectionRepository } from './collection-repository';
 import { CompositeCollectionRepository } from './composite-collection-repository';
 import { CompositeDocumentRepository } from './composite-document-repository';
+import { CompositeExtractionRepository } from './extraction-repository';
 import type { DocumentRepository } from './document-repository';
+import type { ExtractionRepository } from './extraction-repository';
 import { GuestCollectionRepository } from './guest-collection-repository';
 import {
   buildLocalExperience,
@@ -56,6 +58,7 @@ export interface KnowledgeRepositories {
   experiences: ExperienceRepository;
   projects: ProjectRepository;
   documents: DocumentRepository;
+  extraction: ExtractionRepository;
 }
 
 export function createKnowledgeRepositories(
@@ -65,5 +68,6 @@ export function createKnowledgeRepositories(
     experiences: createExperienceRepository(client),
     projects: createProjectRepository(client),
     documents: createDocumentRepository(client),
+    extraction: new CompositeExtractionRepository(client),
   };
 }

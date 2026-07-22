@@ -5,7 +5,8 @@
 //
 // Runs with the CALLER'S JWT so all grounding is retrieved under Row-Level
 // Security. Grounding = the user's profile (skills/certs/target role), work
-// experiences, projects, STAR stories, and (if embeddings exist) resume chunks.
+// experiences, projects, STAR stories, and excerpts of the most recent analyzed
+// resume (pulled directly from its ingested chunks).
 //
 // The model is instructed to use ONLY the provided facts + the user's answer,
 // and to NEVER invent employment history, metrics, or outcomes. Missing facts
@@ -108,14 +109,50 @@ function truncate(text: string, max: number): string {
   return text.length > max ? text.slice(0, max) + '…' : text;
 }
 
+/**
+ * Pulls excerpts of the user's most recent analyzed resume straight from the
+ * ingested chunks (RLS-scoped). This means the resume text itself grounds the
+ * evaluation, not only the structured experiences the user approved. Capped so
+ * it can't dominate the prompt. (Semantic ranking via match_document_chunks is
+ * a future upgrade for users with many/large documents; resumes are small
+ * enough that including them directly gives full coverage.)
+ */
+async function fetchResumeExcerpts(
+  supabase: ReturnType<typeof createClient>,
+): Promise<string> {
+  const { data: docs } = await supabase
+    .from('documents')
+    .select('id')
+    .eq('source_type', 'resume')
+    .eq('status', 'ready')
+    .order('created_at', { ascending: false })
+    .limit(1);
+  const docId = (docs as { id: string }[] | null)?.[0]?.id;
+  if (!docId) return '';
+
+  const { data: chunks } = await supabase
+    .from('document_chunks')
+    .select('content')
+    .eq('document_id', docId)
+    .order('chunk_index', { ascending: true })
+    .limit(12);
+
+  const joined = (chunks as { content: string }[] | null)
+    ?.map((c) => c.content)
+    .join('\n')
+    .trim();
+  return joined ? truncate(joined, 3500) : '';
+}
+
 async function buildGrounding(
   supabase: ReturnType<typeof createClient>,
 ): Promise<{ text: string; hasFacts: boolean }> {
-  const [profileRes, expRes, projRes, storyRes] = await Promise.all([
+  const [profileRes, expRes, projRes, storyRes, resumeText] = await Promise.all([
     supabase.from('user_profiles').select('target_role, industry, skills, certifications').maybeSingle(),
     supabase.from('work_experiences').select('*').limit(15),
     supabase.from('projects').select('*').limit(15),
     supabase.from('star_stories').select('*').limit(15),
+    fetchResumeExcerpts(supabase),
   ]);
 
   const parts: string[] = [];
@@ -148,8 +185,15 @@ async function buildGrounding(
     );
   }
 
-  const text = parts.map((x) => truncate(x, 600)).join('\n');
-  return { text: truncate(text, 8000), hasFacts: parts.length > 0 };
+  const structured = parts.map((x) => truncate(x, 600)).join('\n');
+  const sections: string[] = [];
+  if (structured) sections.push(truncate(structured, 8000));
+  if (resumeText) sections.push(`RESUME EXCERPTS (verbatim from the uploaded resume):\n${resumeText}`);
+
+  return {
+    text: sections.join('\n\n'),
+    hasFacts: parts.length > 0 || resumeText.length > 0,
+  };
 }
 
 Deno.serve(async (req) => {

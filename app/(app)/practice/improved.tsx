@@ -56,8 +56,15 @@ export default function ImprovedAnswerScreen() {
         </Card>
         {evaluation.improvedAnswer ? (
           <Button
-            title={speech.speaking ? 'Stop playback' : '▶  Play improved answer'}
+            title={
+              speech.loading
+                ? 'Preparing audio…'
+                : speech.speaking
+                  ? 'Stop playback'
+                  : '▶  Play improved answer'
+            }
             variant="secondary"
+            loading={speech.loading}
             onPress={() => speech.toggle(evaluation.improvedAnswer)}
           />
         ) : null}
@@ -93,6 +100,12 @@ export default function ImprovedAnswerScreen() {
         </View>
       ) : null}
 
+      {evaluation.improvedAnswer ? (
+        <Button
+          title="Make it mine — edit & re-evaluate"
+          onPress={() => router.push('/(app)/practice/edit?source=improved')}
+        />
+      ) : null}
       <Button
         title="Back to practice"
         variant="secondary"

@@ -11,4 +11,5 @@ export interface PracticeRepository {
     input: SaveAttemptInput,
   ): Promise<Result<PracticeAttempt>>;
   listAttempts(userId: string, limit?: number): Promise<Result<PracticeAttempt[]>>;
+  deleteAttempt(userId: string, id: string): Promise<Result<void>>;
 }

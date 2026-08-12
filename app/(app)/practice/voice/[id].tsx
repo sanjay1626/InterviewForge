@@ -192,6 +192,11 @@ export default function VoicePracticeScreen() {
               ? 'Automatic transcription wasn’t available — type or paste what you said.'
               : 'Fix any words the transcription got wrong, then submit.'}
           </Body>
+          {autoFailed && transcribe.error ? (
+            <Caption style={{ color: theme.warning }}>
+              {toUserMessage(transcribe.error)}
+            </Caption>
+          ) : null}
           <TextField
             label="Transcript"
             value={transcript}

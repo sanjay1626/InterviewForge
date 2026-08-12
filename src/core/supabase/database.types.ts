@@ -339,6 +339,132 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['follow_up_answers']['Insert']>;
         Relationships: [];
       };
+      mock_interview_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          config: Json;
+          status: 'in_progress' | 'completed' | 'abandoned';
+          plan: Json;
+          question_count: number;
+          started_at: string;
+          completed_at: string | null;
+        } & Timestamps;
+        Insert: {
+          id?: string;
+          user_id: string;
+          config?: Json;
+          status?: 'in_progress' | 'completed' | 'abandoned';
+          plan?: Json;
+          question_count?: number;
+          started_at?: string;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['mock_interview_sessions']['Insert']>;
+        Relationships: [];
+      };
+      mock_interview_questions: {
+        Row: {
+          id: string;
+          session_id: string;
+          user_id: string;
+          order_index: number;
+          kind: string | null;
+          competency: string | null;
+          prompt: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          user_id: string;
+          order_index?: number;
+          kind?: string | null;
+          competency?: string | null;
+          prompt: string;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['mock_interview_questions']['Insert']>;
+        Relationships: [];
+      };
+      mock_interview_answers: {
+        Row: {
+          id: string;
+          session_id: string;
+          question_id: string | null;
+          user_id: string;
+          order_index: number;
+          question_text: string;
+          kind: string | null;
+          competency: string | null;
+          transcript: string;
+          mode: string;
+          duration_ms: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          question_id?: string | null;
+          user_id: string;
+          order_index?: number;
+          question_text: string;
+          kind?: string | null;
+          competency?: string | null;
+          transcript?: string;
+          mode?: string;
+          duration_ms?: number;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['mock_interview_answers']['Insert']>;
+        Relationships: [];
+      };
+      mock_interview_followups: {
+        Row: {
+          id: string;
+          session_id: string;
+          answer_id: string | null;
+          user_id: string;
+          prompt: string;
+          response: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          answer_id?: string | null;
+          user_id: string;
+          prompt: string;
+          response?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['mock_interview_followups']['Insert']>;
+        Relationships: [];
+      };
+      mock_interview_reports: {
+        Row: {
+          id: string;
+          session_id: string;
+          user_id: string;
+          overall_score: number;
+          report: Json;
+          source: 'ai' | 'offline';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          user_id: string;
+          overall_score?: number;
+          report?: Json;
+          source?: 'ai' | 'offline';
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['mock_interview_reports']['Insert']>;
+        Relationships: [];
+      };
       user_progress: {
         Row: {
           user_id: string;

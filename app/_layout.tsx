@@ -14,6 +14,7 @@ import { useProfile } from '@/features/onboarding/hooks/useProfile';
 import { KnowledgeProvider } from '@/features/knowledge/KnowledgeProvider';
 import { StoriesProvider } from '@/features/stories/StoriesProvider';
 import { PracticeProvider } from '@/features/practice/PracticeProvider';
+import { MockProvider } from '@/features/mock/MockProvider';
 
 const queryClient = createQueryClient();
 
@@ -70,6 +71,7 @@ function RootNavigation() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(onboarding)" />
       <Stack.Screen name="(app)" />
+      <Stack.Screen name="mock" />
     </Stack>
   );
 }
@@ -84,10 +86,12 @@ export default function RootLayout() {
               <KnowledgeProvider>
                 <StoriesProvider>
                   <PracticeProvider>
-                    <ErrorBoundary>
-                      <StatusBar style="auto" />
-                      <RootNavigation />
-                    </ErrorBoundary>
+                    <MockProvider>
+                      <ErrorBoundary>
+                        <StatusBar style="auto" />
+                        <RootNavigation />
+                      </ErrorBoundary>
+                    </MockProvider>
                   </PracticeProvider>
                 </StoriesProvider>
               </KnowledgeProvider>

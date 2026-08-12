@@ -29,4 +29,8 @@ export class CompositePracticeRepository implements PracticeRepository {
   listAttempts(userId: string, limit?: number): Promise<Result<PracticeAttempt[]>> {
     return this.pick(userId).listAttempts(userId, limit);
   }
+
+  deleteAttempt(userId: string, id: string): Promise<Result<void>> {
+    return this.pick(userId).deleteAttempt(userId, id);
+  }
 }

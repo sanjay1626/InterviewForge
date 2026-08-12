@@ -5,16 +5,22 @@ import { CompositeEvaluationRepository } from './data/composite-evaluation-repos
 import { CompositePracticeRepository } from './data/composite-practice-repository';
 import { CompositeTranscriptionRepository } from './data/transcription-repository';
 import { CompositeFollowUpRepository } from './data/follow-up-repository';
+import { CompositeTtsRepository } from './data/tts-repository';
+import { CompositeAssistantRepository } from './data/assistant-repository';
+import type { AssistantRepository } from './data/assistant-repository';
 import type { EvaluationRepository } from './data/evaluation-repository';
 import type { FollowUpRepository } from './data/follow-up-repository';
 import type { PracticeRepository } from './data/practice-repository';
 import type { TranscriptionRepository } from './data/transcription-repository';
+import type { TtsRepository } from './data/tts-repository';
 
 interface PracticeRepositories {
   evaluation: EvaluationRepository;
   practice: PracticeRepository;
   transcription: TranscriptionRepository;
   followUps: FollowUpRepository;
+  tts: TtsRepository;
+  assistant: AssistantRepository;
 }
 
 const PracticeContext = createContext<PracticeRepositories | null>(null);
@@ -36,6 +42,8 @@ export function PracticeProvider({
       practice: new CompositePracticeRepository(client),
       transcription: new CompositeTranscriptionRepository(client),
       followUps: new CompositeFollowUpRepository(client),
+      tts: new CompositeTtsRepository(client),
+      assistant: new CompositeAssistantRepository(client),
     };
   }, [repositories]);
 

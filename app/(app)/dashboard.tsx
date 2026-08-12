@@ -81,6 +81,18 @@ export default function DashboardScreen() {
       </Card>
 
       <Card
+        accessibilityLabel="Start a mock interview"
+        onPress={() => router.push('/mock/setup')}
+      >
+        <Caption style={{ color: theme.brand, fontWeight: '700' }}>MOCK INTERVIEW</Caption>
+        <Subtitle>Run a full mock interview</Subtitle>
+        <Caption>
+          A realistic, voice-first simulation — one question at a time, adaptive
+          follow-ups, and a detailed report at the end.
+        </Caption>
+      </Card>
+
+      <Card
         accessibilityLabel="Start practicing"
         onPress={() => router.push('/(app)/practice')}
       >

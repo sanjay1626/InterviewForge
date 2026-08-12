@@ -103,4 +103,15 @@ export class SupabasePracticeRepository implements PracticeRepository {
     }
     return ok(attempts);
   }
+
+  async deleteAttempt(userId: string, id: string): Promise<Result<void>> {
+    // `id` is the practice_answers row id; evaluations cascade on delete.
+    const { error } = await this.client
+      .from('practice_answers')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+    if (error) return err(mapPostgrestError(error.message, error.code, error));
+    return ok(undefined);
+  }
 }

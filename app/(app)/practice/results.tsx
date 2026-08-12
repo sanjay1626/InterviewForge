@@ -75,10 +75,20 @@ export default function EvaluationResultsScreen() {
             onPress={() => router.push('/(app)/practice/improved')}
           />
           <Button
-            title="Practice follow-up questions"
+            title="Refine my answer & re-evaluate"
             variant="secondary"
+            onPress={() => router.push('/(app)/practice/edit')}
+          />
+          <Button
+            title="Practice follow-up questions"
+            variant="ghost"
             onPress={() => router.push('/(app)/practice/followups')}
           />
+          <Caption style={{ color: last.attemptId ? theme.success : theme.textMuted }}>
+            {last.attemptId
+              ? '✓ Saved to your history — find it under Practice → My answers.'
+              : 'Not saved (offline). Sign in to keep your practice history.'}
+          </Caption>
         </View>
       }
     >

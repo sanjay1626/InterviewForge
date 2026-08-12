@@ -73,4 +73,28 @@ describe('CompositePracticeRepository (guest, local)', () => {
     expect(listed.value[0]?.evaluation.overallScore).toBe(55);
     expect(listed.value[0]?.competency).toBe('problem-solving');
   });
+
+  it('deletes a saved attempt', async () => {
+    const repo = new CompositePracticeRepository(null);
+    const evaluation: AnswerEvaluation = normalizeEvaluation(
+      { scores: {}, overallScore: 40 },
+      'offline',
+    );
+    const saved = await repo.saveAttempt(GUEST_ID, {
+      questionId: null,
+      questionText: 'Q',
+      competency: 'problem-solving',
+      answer: 'A',
+      mode: 'text',
+      evaluation,
+    });
+    expect(saved.ok).toBe(true);
+    if (!saved.ok) return;
+
+    const del = await repo.deleteAttempt(GUEST_ID, saved.value.id);
+    expect(del.ok).toBe(true);
+
+    const after = await repo.listAttempts(GUEST_ID);
+    expect(after.ok && after.value).toHaveLength(0);
+  });
 });

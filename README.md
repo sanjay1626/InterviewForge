@@ -29,6 +29,12 @@ TanStack Query.
 >   feedback), an on-device progress dashboard (scores by competency, streak,
 >   strongest/focus areas, too-long & filler watch-outs, recommended next
 >   question), and results-screen polish.
+>
+> **Post-MVP:** PDF resume ingestion + auto-extraction, natural voice (OpenAI
+> TTS), the **Blank Page Assistant** (memory recall + grounded draft), answer
+> history/versioning, and a full **Mock Interview** (voice-first, adaptive
+> follow-ups, end-of-session report) — all on the same grounding + evaluation
+> pipeline.
 
 ## Quick start
 

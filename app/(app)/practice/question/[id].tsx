@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { View } from 'react-native';
 
@@ -26,6 +26,7 @@ import {
 } from '@/features/practice/domain/evaluation';
 import { useEvaluateAnswer } from '@/features/practice/hooks/usePractice';
 import { usePracticeUiStore } from '@/features/practice/store/practice-ui-store';
+import { useAssistantStore } from '@/features/practice/store/assistant-store';
 
 export default function PracticeQuestionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -37,6 +38,13 @@ export default function PracticeQuestionScreen() {
   const evaluate = useEvaluateAnswer();
   const setLast = usePracticeUiStore((s) => s.setLast);
   const isGuest = useAuthStore((s) => s.session?.user.mode === 'guest');
+  const takePendingDraft = useAssistantStore((s) => s.takePendingDraft);
+
+  // Seed the editor from a Blank Page Assistant draft, if one is waiting.
+  useEffect(() => {
+    const draft = takePendingDraft();
+    if (draft) setAnswer(draft);
+  }, [takePendingDraft]);
 
   if (!question) {
     return (
@@ -108,11 +116,19 @@ export default function PracticeQuestionScreen() {
       </Card>
 
       <Button
-        title="Answer by voice instead"
-        variant="ghost"
-        fullWidth={false}
-        onPress={() => router.replace(`/(app)/practice/voice/${question.id}`)}
+        title="🧠  Blank page? Recall my experience"
+        variant="secondary"
+        onPress={() => router.push(`/(app)/practice/assist/${question.id}`)}
       />
+
+      <View style={{ flexDirection: 'row' }}>
+        <Button
+          title="Answer by voice instead"
+          variant="ghost"
+          fullWidth={false}
+          onPress={() => router.replace(`/(app)/practice/voice/${question.id}`)}
+        />
+      </View>
 
       <Body muted>
         Answer in STAR form — Situation, Task, Action, Result. Use your real

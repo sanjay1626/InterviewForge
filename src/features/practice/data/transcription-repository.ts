@@ -1,6 +1,7 @@
 import { makeError } from '@/core/domain/errors';
 import { err, ok, type Result } from '@/core/domain/result';
 import type { TypedSupabaseClient } from '@/core/supabase/client';
+import { describeFunctionError } from '@/core/supabase/function-error';
 import { isGuestUserId } from '@/features/auth/data/guest-session';
 
 export interface TranscribeInput {
@@ -40,14 +41,21 @@ export class CompositeTranscriptionRepository
       const { data, error } = await this.client.functions.invoke('transcribe-audio', {
         body: input,
       });
-      if (error || !data || typeof (data as { text?: unknown }).text !== 'string') {
-        return err(NOT_AVAILABLE);
+      // Surface the real reason (no TRANSCRIBE_API_KEY → 501, not deployed →
+      // 404, provider rejected the audio → 502) instead of a blanket message.
+      if (error) return err(await describeFunctionError(error, 'transcribe-audio'));
+      if (!data || typeof (data as { text?: unknown }).text !== 'string') {
+        return err(makeError('unknown', 'Transcription returned an unexpected response.'));
       }
       const text = (data as { text: string }).text.trim();
-      if (!text) return err(NOT_AVAILABLE);
+      if (!text) {
+        return err(
+          makeError('validation', 'No speech was detected in the recording. Try again or type your answer.'),
+        );
+      }
       return ok(text);
-    } catch {
-      return err(NOT_AVAILABLE);
+    } catch (cause) {
+      return err(makeError('unknown', 'Could not transcribe the recording.', { cause }));
     }
   }
 }

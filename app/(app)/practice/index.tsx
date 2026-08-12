@@ -35,6 +35,20 @@ export default function PracticeBrowserScreen() {
       </View>
 
       <Card
+        accessibilityLabel="My answers"
+        onPress={() => router.push('/(app)/practice/history')}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <Ionicons name="bookmarks-outline" size={22} color={theme.brand} />
+          <View style={{ flex: 1 }}>
+            <Body style={{ fontWeight: '600' }}>My answers</Body>
+            <Caption>Reopen, refine, and re-evaluate your saved answers</Caption>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+        </View>
+      </Card>
+
+      <Card
         accessibilityLabel="View your progress"
         onPress={() => router.push('/(app)/practice/progress')}
       >

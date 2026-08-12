@@ -119,6 +119,17 @@ progress dashboard is computed on-device from your practice history, so it works
 offline and for guests with no extra setup; `user_progress` (created in 0004)
 remains available for future server-side aggregation.
 
+## 5g. Apply the Mock Interview migration — [Mock Interview]
+
+Run [`supabase/migrations/0007_mock_interviews.sql`](../supabase/migrations/0007_mock_interviews.sql)
+to create `mock_interview_sessions`, `mock_interview_questions`,
+`mock_interview_answers`, `mock_interview_followups`, and
+`mock_interview_reports` (owner-only RLS, indexes). The Mock Interview reuses the
+existing `evaluate-answer`, `transcribe-audio`, and `speak` functions — **no new
+Edge Function to deploy.** Without those functions/keys it still runs with the
+deterministic plan, manual transcript entry, device voice, and the offline
+evaluator.
+
 ## 5f. Apply the v1.1 index migration — [Recommended]
 
 Run [`supabase/migrations/0006_list_indexes.sql`](../supabase/migrations/0006_list_indexes.sql)
@@ -188,7 +199,31 @@ Deploy the Phase 4 answer evaluator and the Phase 5 transcriber the same way:
 supabase functions deploy evaluate-answer
 supabase functions deploy transcribe-audio
 supabase functions deploy extract-profile
+supabase functions deploy speak
+supabase functions deploy blank-page
 ```
+
+`blank-page` powers the **Blank Page Assistant** (memory recall + reflection →
+grounded draft). It reads the user's own records (experiences, projects, STAR
+stories, resume chunks, previous answers) under RLS, ranks them for the
+question, and — only after the user reflects — assembles a draft that cites its
+sources and brackets anything it doesn't know. It reuses `ANTHROPIC_API_KEY`;
+without it the app falls back to **local** recall (the user's own records) and a
+deterministic draft assembled from their reflection.
+
+`speak` is text-to-speech (natural voice for the improved answer). It calls an
+OpenAI-compatible TTS endpoint and needs its own key; without it the app falls
+back to the on-device system voice. Set:
+
+```bash
+supabase secrets set TTS_API_KEY=sk-...          # OpenAI key
+# optional overrides:
+supabase secrets set TTS_MODEL=gpt-4o-mini-tts   # or tts-1
+supabase secrets set TTS_VOICE=alloy             # alloy | echo | fable | onyx | nova | shimmer
+supabase secrets set TTS_URL=https://api.openai.com/v1/audio/speech
+```
+
+(Anthropic/Claude has no speech API, so voice uses a dedicated TTS provider.)
 
 `extract-profile` reads an ingested resume's chunks (RLS-scoped) and returns
 structured **work experiences, projects, skills, and certifications** for the

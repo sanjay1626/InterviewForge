@@ -120,7 +120,7 @@ export function useTranscribe() {
   });
 }
 
-/** Recent practice attempts (used by the progress dashboard in Phase 6). */
+/** Recent practice attempts (used by the progress dashboard and history). */
 export function useRecentAttempts(limit = 20) {
   const { practice } = usePracticeRepositories();
   const userId = useAuthStore((s) => s.session?.user.id);
@@ -131,6 +131,23 @@ export function useRecentAttempts(limit = 20) {
       const result = await practice.listAttempts(userId as string, limit);
       if (!result.ok) throw result.error;
       return result.value;
+    },
+  });
+}
+
+/** Deletes a saved practice attempt (a version). */
+export function useDeleteAttempt() {
+  const { practice } = usePracticeRepositories();
+  const userId = useAuthStore((s) => s.session?.user.id);
+  const queryClient = useQueryClient();
+  return useMutation<void, AppError, string>({
+    mutationFn: async (id) => {
+      if (!userId) throw noSessionError();
+      const result = await practice.deleteAttempt(userId, id);
+      if (!result.ok) throw result.error;
+    },
+    onSuccess: () => {
+      if (userId) void queryClient.invalidateQueries({ queryKey: keys.attempts(userId) });
     },
   });
 }

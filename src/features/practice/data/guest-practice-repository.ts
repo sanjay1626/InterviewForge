@@ -45,4 +45,13 @@ export class GuestPracticeRepository implements PracticeRepository {
       return err(makeError('unknown', 'Could not read local history.', { cause }));
     }
   }
+
+  async deleteAttempt(_userId: string, id: string): Promise<Result<void>> {
+    try {
+      await this.collection.remove(id);
+      return ok(undefined);
+    } catch (cause) {
+      return err(makeError('unknown', 'Could not delete locally.', { cause }));
+    }
+  }
 }

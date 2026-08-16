@@ -76,10 +76,12 @@ function fromStory(story: StarStory): StarStoryInput {
 
 interface StarStoryBuilderProps {
   existing?: StarStory;
+  /** Prefill for a new story (e.g. from Fast Prep's suggested stories). */
+  initial?: Partial<StarStoryInput>;
   onSaved: () => void;
 }
 
-export function StarStoryBuilder({ existing, onSaved }: StarStoryBuilderProps) {
+export function StarStoryBuilder({ existing, initial, onSaved }: StarStoryBuilderProps) {
   const theme = useTheme();
   const save = useSaveStory();
   const experiences = useExperiences();
@@ -87,7 +89,7 @@ export function StarStoryBuilder({ existing, onSaved }: StarStoryBuilderProps) {
 
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState<StarStoryInput>(
-    existing ? fromStory(existing) : emptyForm(),
+    existing ? fromStory(existing) : { ...emptyForm(), ...initial },
   );
 
   const set = <K extends keyof StarStoryInput>(key: K, value: StarStoryInput[K]) =>

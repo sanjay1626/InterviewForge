@@ -19,6 +19,7 @@ import {
   spacing,
   useTheme,
 } from '@/core/ui';
+import { isCompetency } from '@/core/domain/competencies';
 import {
   REFLECTION_QUESTIONS,
   emptyReflection,
@@ -56,10 +57,26 @@ function Chip({
 }
 
 export default function AssistantScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{ id: string; prompt?: string; competency?: string }>();
+  const { id } = params;
   const router = useRouter();
   const theme = useTheme();
-  const question = id ? findQuestion(id) : undefined;
+
+  // Two entry modes: a library question by id, or a free-text "custom" prompt
+  // (id="custom") launched from Fast Prep / Mock so "Help me remember" works for
+  // any question — reusing this same recall + grounded-draft flow.
+  const isCustom = id === 'custom';
+  const libQuestion = !isCustom && id ? findQuestion(id) : undefined;
+  const competencyParam =
+    params.competency && isCompetency(params.competency) ? params.competency : null;
+  const question =
+    isCustom
+      ? params.prompt
+        ? { prompt: params.prompt, competency: competencyParam }
+        : undefined
+      : libQuestion
+        ? { prompt: libQuestion.prompt, competency: libQuestion.competency }
+        : undefined;
 
   const recall = useMemoryRecall(question?.prompt ?? '', question?.competency ?? null);
   const draftMutation = useAssistantDraft();
@@ -115,6 +132,12 @@ export default function AssistantScreen() {
   };
 
   const useDraft = (text: string) => {
+    // Custom prompts have no library practice screen to return to — the recall +
+    // draft are the aid; the user takes it back to their mock/prep answer.
+    if (isCustom) {
+      router.back();
+      return;
+    }
     setPendingDraft(text);
     router.replace(`/(app)/practice/question/${id}`);
   };
@@ -150,9 +173,11 @@ export default function AssistantScreen() {
             <Caption>Your draft uses only your reflection + the sources you kept.</Caption>
           )}
           <Button
-            title="Skip — just write my own"
+            title={isCustom ? 'Done' : 'Skip — just write my own'}
             variant="ghost"
-            onPress={() => router.replace(`/(app)/practice/question/${id}`)}
+            onPress={() =>
+              isCustom ? router.back() : router.replace(`/(app)/practice/question/${id}`)
+            }
           />
         </View>
       }
@@ -286,7 +311,10 @@ export default function AssistantScreen() {
               ))}
             </View>
           ) : null}
-          <Button title="Use this draft & edit" onPress={() => useDraft(draft.draft)} />
+          <Button
+            title={isCustom ? 'Done — take this to your answer' : 'Use this draft & edit'}
+            onPress={() => useDraft(draft.draft)}
+          />
         </View>
       ) : null}
     </Screen>

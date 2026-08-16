@@ -465,6 +465,48 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['mock_interview_reports']['Insert']>;
         Relationships: [];
       };
+      interview_prep: {
+        Row: {
+          id: string;
+          user_id: string;
+          document_id: string | null;
+          job_title: string;
+          company: string;
+          job_description: string;
+          interview_date: string | null;
+          analysis: Json;
+          requirement_matches: Json;
+          question_plan: Json;
+          study_topics: Json;
+          readiness: Json;
+          suggested_stories: Json;
+          needs_input: Json;
+          answers: Json;
+          source: 'ai' | 'offline';
+        } & Timestamps;
+        Insert: {
+          id?: string;
+          user_id: string;
+          document_id?: string | null;
+          job_title?: string;
+          company?: string;
+          job_description?: string;
+          interview_date?: string | null;
+          analysis?: Json;
+          requirement_matches?: Json;
+          question_plan?: Json;
+          study_topics?: Json;
+          readiness?: Json;
+          suggested_stories?: Json;
+          needs_input?: Json;
+          answers?: Json;
+          source?: 'ai' | 'offline';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['interview_prep']['Insert']>;
+        Relationships: [];
+      };
       user_progress: {
         Row: {
           user_id: string;

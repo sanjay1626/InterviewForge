@@ -15,6 +15,7 @@ import { KnowledgeProvider } from '@/features/knowledge/KnowledgeProvider';
 import { StoriesProvider } from '@/features/stories/StoriesProvider';
 import { PracticeProvider } from '@/features/practice/PracticeProvider';
 import { MockProvider } from '@/features/mock/MockProvider';
+import { PrepProvider } from '@/features/prep/PrepProvider';
 
 const queryClient = createQueryClient();
 
@@ -72,6 +73,7 @@ function RootNavigation() {
       <Stack.Screen name="(onboarding)" />
       <Stack.Screen name="(app)" />
       <Stack.Screen name="mock" />
+      <Stack.Screen name="prep" />
     </Stack>
   );
 }
@@ -87,10 +89,12 @@ export default function RootLayout() {
                 <StoriesProvider>
                   <PracticeProvider>
                     <MockProvider>
-                      <ErrorBoundary>
-                        <StatusBar style="auto" />
-                        <RootNavigation />
-                      </ErrorBoundary>
+                      <PrepProvider>
+                        <ErrorBoundary>
+                          <StatusBar style="auto" />
+                          <RootNavigation />
+                        </ErrorBoundary>
+                      </PrepProvider>
                     </MockProvider>
                   </PracticeProvider>
                 </StoriesProvider>

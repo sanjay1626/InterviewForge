@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 
@@ -37,6 +37,8 @@ import {
 import { buildInterviewPlan } from '@/features/mock/domain/plan';
 import type { MockSession } from '@/features/mock/domain/session';
 import { useMockStore } from '@/features/mock/store/mock-store';
+import { buildPlanFromPrep } from '@/features/prep/domain/mock-plan';
+import { usePrepStore } from '@/features/prep/store/prep-store';
 
 const TYPE_OPTIONS: SelectOption<MockInterviewType>[] = (
   ['behavioral', 'resume', 'mixed'] as MockInterviewType[]
@@ -70,10 +72,24 @@ export default function MockSetupScreen() {
   const attempts = useRecentAttempts(100);
   const stories = useStories();
 
-  const [config, setConfig] = useState(defaultMockConfig());
+  // When launched from Fast Prep, seed the config from the prep package and plan
+  // the interview around the role's requirements instead of the generic library.
+  const { fromPrep } = useLocalSearchParams<{ fromPrep?: string }>();
+  const prepPackage = usePrepStore((s) => s.pkg);
+  const usingPrep = fromPrep === '1' && Boolean(prepPackage);
+
+  const [config, setConfig] = useState(() =>
+    usingPrep && prepPackage
+      ? {
+          ...defaultMockConfig(prepPackage.analysis.jobTitle),
+          company: prepPackage.input.company,
+          jobDescription: prepPackage.input.jobDescription,
+        }
+      : defaultMockConfig(),
+  );
 
   useEffect(() => {
-    if (profile.data?.targetRole && !config.targetRole) {
+    if (!usingPrep && profile.data?.targetRole && !config.targetRole) {
       setConfig((c) => ({ ...c, targetRole: profile.data!.targetRole! }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,11 +109,14 @@ export default function MockSetupScreen() {
     setConfig((c) => ({ ...c, [k]: v }));
 
   const start = () => {
-    const plan = buildInterviewPlan(config, {
-      weakCompetencies,
-      hasResume,
-      roleTitle: config.targetRole,
-    });
+    const plan =
+      usingPrep && prepPackage
+        ? buildPlanFromPrep(prepPackage, config)
+        : buildInterviewPlan(config, {
+            weakCompetencies,
+            hasResume,
+            roleTitle: config.targetRole,
+          });
     const now = new Date().toISOString();
     const session: MockSession = {
       id: newId(),
@@ -140,6 +159,12 @@ export default function MockSetupScreen() {
           A realistic, one-question-at-a-time simulation. Feedback comes only at
           the end — just like the real thing.
         </Body>
+        {usingPrep ? (
+          <Caption style={{ color: theme.brand, fontWeight: '700' }}>
+            ⚡ Using your prep for {prepPackage?.analysis.jobTitle} — questions are
+            planned around this role’s requirements.
+          </Caption>
+        ) : null}
 
         <TextField
           label="Target role"

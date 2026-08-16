@@ -81,6 +81,20 @@ export default function DashboardScreen() {
       </Card>
 
       <Card
+        accessibilityLabel="Prepare for an interview"
+        onPress={() => router.push('/prep/setup')}
+        selected
+      >
+        <Caption style={{ color: theme.brand, fontWeight: '700' }}>⚡ FAST PREP</Caption>
+        <Subtitle>Prepare for an interview</Subtitle>
+        <Caption>
+          Add your resume and a job description. InterviewForge builds your
+          personalized prep — likely questions, a job match, and readiness — in
+          minutes.
+        </Caption>
+      </Card>
+
+      <Card
         accessibilityLabel="Start a mock interview"
         onPress={() => router.push('/mock/setup')}
       >

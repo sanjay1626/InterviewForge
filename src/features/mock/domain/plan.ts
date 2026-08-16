@@ -24,12 +24,12 @@ export interface PlannedQuestion {
   prompt: string;
 }
 
-const OPENING = 'To start, tell me a bit about yourself and what you are looking for in your next role.';
+export const OPENING = 'To start, tell me a bit about yourself and what you are looking for in your next role.';
 const RESUME_PROMPTS = [
   'Walk me through your background and a project from your experience you are most proud of.',
   'Tell me about a project on your resume and the part you personally played in it.',
 ];
-const CLOSING = 'That is everything from me. Is there anything you would like to add, or any questions you have for me?';
+export const CLOSING = 'That is everything from me. Is there anything you would like to add, or any questions you have for me?';
 
 /** Role-focused competencies interviewers commonly probe. */
 const ROLE_COMPETENCIES: Competency[] = ['ownership', 'problem-solving', 'communication'];
